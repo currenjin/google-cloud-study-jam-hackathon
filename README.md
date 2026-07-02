@@ -32,16 +32,26 @@ stages/
   05-hackathon-rehearsal/ # 120분 리허설
 src/
   app.py                  # 해커톤 당일 사용할 최소 Streamlit 앱
+  gemini_client.py        # Gemini 호출 + fallback
+  study_buddy.py          # 프롬프트/fallback 생성 로직
 ```
 
-## 현재 1순위 MVP 후보
+## 현재 1순위 MVP
 
-**Small Table Matcher**
+**Study Jam Buddy**
 
-사람들의 관심사/고민/에너지 상태를 입력하면 Gemini가 작은 모임의 대화 주제, 소그룹 구성, 첫 질문을 추천한다.
+Google Cloud Study Jam 학습자가 배운 내용을 입력하면 Gemini가 개인 맞춤 복습 퀴즈, 약점 분석, 다음 실습 체크리스트를 만들어주는 학습 코치.
 
 왜 좋나:
-- 다니엘의 고유 관심사와 연결됨: 서로 이웃처럼 사랑하도록 돕는 일
+- 행사 맥락과 직접 연결됨: Study Jam 학습 → 해커톤 실습 전환
 - 120분 안에 만들 수 있음
-- Gemini 데모가 명확함
-- 발표 스토리가 좋음: AI를 정보 처리보다 관계 회복에 사용
+- Gemini 데모가 명확함: 비정형 학습 메모 → 구조화된 복습/액션
+- 발표 스토리가 선명함: 배운 내용을 실제 행동으로 바꿔주는 AI 학습 파트너
+
+## 데모 출력
+
+- 5줄 요약
+- 복습 퀴즈 5개
+- 약점 개념 3개
+- 다음 실습 체크리스트
+- 오늘 30분 액션
