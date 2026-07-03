@@ -297,6 +297,8 @@ Streamlit 앱을 컨테이너로 배포해서 URL로 보여줄 수 있는 서비
 
 ## 10. 추천 학습 순서
 
+더 자세한 개념/실습/활용 예시는 [`concepts-practices-examples.md`](./concepts-practices-examples.md)를 보고, 발표용 샘플과 fallback은 [`demo-playbook.md`](./demo-playbook.md)를 본다.
+
 ### 1순위: 오늘 바로 할 것
 
 1. `README.md` 빠른 시작 실행

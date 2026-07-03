@@ -5,7 +5,10 @@
 ## 예정 명령
 
 ```bash
-gcloud run deploy small-table-matcher   --source .   --region asia-northeast3   --allow-unauthenticated
+gcloud run deploy study-jam-buddy \
+  --source . \
+  --region asia-northeast3 \
+  --allow-unauthenticated
 ```
 
 ## 완료 기준

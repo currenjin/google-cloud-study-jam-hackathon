@@ -8,6 +8,12 @@ Google Cloud Study Jam Hackathon 준비용 private repo.
 
 ## 빠른 시작
 
+먼저 해커톤 학습 패키지부터 읽는다.
+
+- [`docs/hackathon-learning-pack.md`](docs/hackathon-learning-pack.md): 전체 학습 진입점
+- [`docs/concepts-practices-examples.md`](docs/concepts-practices-examples.md): 개념/실습/활용 예시
+- [`docs/demo-playbook.md`](docs/demo-playbook.md): 발표/데모/fallback
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
@@ -20,11 +26,14 @@ streamlit run src/app.py
 
 ```text
 docs/
-  plan.md                     # 전체 준비 플랜
-  free-study-topics.md        # 과금 없이 공부할 주제/순서
-  studyjam-hackathon-guide.md # 진행 예상/무과금 학습 가이드
-  judging-story.md            # 발표/심사 스토리
-  idea-bank.md                # 아이디어 후보
+  hackathon-learning-pack.md       # 학습 패키지 진입점
+  concepts-practices-examples.md   # 개념/실습/활용 예시
+  demo-playbook.md                 # 샘플 입력/발표/fallback
+  plan.md                          # 전체 준비 플랜
+  free-study-topics.md             # 과금 없이 공부할 주제/순서
+  studyjam-hackathon-guide.md      # 진행 예상/무과금 학습 가이드
+  judging-story.md                 # 발표/심사 스토리
+  idea-bank.md                     # 아이디어 후보
 stages/
   00-gcp-warmup/          # GCP/Cloud Shell 감각 회복
   01-gemini-api/          # Gemini API 최소 호출
