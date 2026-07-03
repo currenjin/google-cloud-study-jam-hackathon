@@ -20,11 +20,15 @@
 
 ## 읽는 순서
 
-1. [`free-study-topics.md`](./free-study-topics.md)
+1. [`winning-strategy.md`](./winning-strategy.md)
+   - 수상 목표 기준 피벗 전략
+   - Study Jam Buddy를 Hackathon Co-pilot으로 강화하는 방향
+
+2. [`free-study-topics.md`](./free-study-topics.md)
    - 과금 없이 공부할 전체 범위
    - 무엇을 깊게 보고, 무엇을 피할지
 
-2. [`concepts-practices-examples.md`](./concepts-practices-examples.md)
+3. [`concepts-practices-examples.md`](./concepts-practices-examples.md)
    - 개념 → 로컬 실습 → 해커톤 활용 예시
    - Gemini, Streamlit, Cloud Run, Firestore, Storage, 비용 관리
 

@@ -11,6 +11,7 @@ Google Cloud Study Jam Hackathon 준비용 private repo.
 
 먼저 해커톤 학습 패키지부터 읽는다.
 
+- [`docs/winning-strategy.md`](docs/winning-strategy.md): 수상 목표 피벗 전략
 - [`docs/hackathon-learning-pack.md`](docs/hackathon-learning-pack.md): 전체 학습 진입점
 - [`docs/concepts-practices-examples.md`](docs/concepts-practices-examples.md): 개념/실습/활용 예시
 - [`docs/demo-playbook.md`](docs/demo-playbook.md): 발표/데모/fallback
@@ -27,6 +28,7 @@ streamlit run src/app.py
 
 ```text
 docs/
+  winning-strategy.md             # 수상 목표 피벗 전략
   hackathon-learning-pack.md       # 학습 패키지 진입점
   concepts-practices-examples.md   # 개념/실습/활용 예시
   demo-playbook.md                 # 샘플 입력/발표/fallback
