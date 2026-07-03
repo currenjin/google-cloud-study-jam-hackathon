@@ -57,6 +57,8 @@
 
 ## 3. 과금 없이 공부할 범위
 
+상세 체크리스트는 [`free-study-topics.md`](./free-study-topics.md)를 먼저 본다.
+
 ### 꼭 익힐 것
 
 - Gemini API 기본 개념

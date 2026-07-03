@@ -21,6 +21,7 @@ streamlit run src/app.py
 ```text
 docs/
   plan.md                     # 전체 준비 플랜
+  free-study-topics.md        # 과금 없이 공부할 주제/순서
   studyjam-hackathon-guide.md # 진행 예상/무과금 학습 가이드
   judging-story.md            # 발표/심사 스토리
   idea-bank.md                # 아이디어 후보
