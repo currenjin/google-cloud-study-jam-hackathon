@@ -20,9 +20,10 @@ streamlit run src/app.py
 
 ```text
 docs/
-  plan.md                 # 전체 준비 플랜
-  judging-story.md        # 발표/심사 스토리
-  idea-bank.md            # 아이디어 후보
+  plan.md                     # 전체 준비 플랜
+  studyjam-hackathon-guide.md # 진행 예상/무과금 학습 가이드
+  judging-story.md            # 발표/심사 스토리
+  idea-bank.md                # 아이디어 후보
 stages/
   00-gcp-warmup/          # GCP/Cloud Shell 감각 회복
   01-gemini-api/          # Gemini API 최소 호출
