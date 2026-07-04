@@ -11,6 +11,7 @@ Google Cloud Study Jam Hackathon 준비용 private repo.
 
 먼저 해커톤 학습 패키지부터 읽는다.
 
+- [`docs/winning-case-analysis-and-recommendation.md`](docs/winning-case-analysis-and-recommendation.md): 수상 케이스 분석 + 다니엘 최종 추천안
 - [`docs/winning-strategy.md`](docs/winning-strategy.md): 수상 목표 피벗 전략
 - [`docs/hackathon-learning-pack.md`](docs/hackathon-learning-pack.md): 전체 학습 진입점
 - [`docs/concepts-practices-examples.md`](docs/concepts-practices-examples.md): 개념/실습/활용 예시
@@ -52,20 +53,23 @@ src/
 
 ## 현재 1순위 MVP
 
-**Study Jam Buddy**
+**Study Jam Buddy: Hackathon Co-pilot**
 
-Google Cloud Study Jam 학습자가 배운 내용을 입력하면 Gemini가 개인 맞춤 복습 퀴즈, 약점 분석, 다음 실습 체크리스트를 만들어주는 학습 코치.
+Google Cloud Study Jam 학습자가 배운 내용을 입력하면 Gemini가 해커톤 아이디어, 120분 MVP 범위, Google Cloud 아키텍처, 구현 순서, 3분 발표 대본, fallback 전략을 만들어주는 AI 실행 코치.
 
 왜 좋나:
-- 행사 맥락과 직접 연결됨: Study Jam 학습 → 해커톤 실습 전환
+- 행사 맥락과 직접 연결됨: Study Jam 학습 → 해커톤 실행 전환
 - 120분 안에 만들 수 있음
-- Gemini 데모가 명확함: 비정형 학습 메모 → 구조화된 복습/액션
-- 발표 스토리가 선명함: 배운 내용을 실제 행동으로 바꿔주는 AI 학습 파트너
+- Gemini 데모가 명확함: 비정형 학습/관심 정보 → 구조화된 MVP/발표 계획
+- 발표 스토리가 선명함: 배운 기술을 실제 제출 가능한 해커톤 결과물로 바꿔줌
+- API/배포 실패 시 fallback 데모가 가능함
 
 ## 데모 출력
 
-- 5줄 요약
-- 복습 퀴즈 5개
-- 약점 개념 3개
-- 다음 실습 체크리스트
-- 오늘 30분 액션
+- 추천 아이디어 3개 + 최종 1개
+- 10초 문제 정의
+- 120분 MVP 범위
+- Google Cloud 아키텍처
+- 구현 순서
+- 3분 발표 대본
+- fallback 데모 플랜
