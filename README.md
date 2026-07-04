@@ -11,6 +11,7 @@ Google Cloud Study Jam Hackathon 준비용 private repo.
 
 먼저 해커톤 학습 패키지부터 읽는다.
 
+- [`docs/no-billing-study-session.md`](docs/no-billing-study-session.md): 과금 없이 바로 따라 하는 60분 기술 공부 세션
 - [`docs/winning-case-analysis-and-recommendation.md`](docs/winning-case-analysis-and-recommendation.md): 수상 케이스 분석 + 다니엘 최종 추천안
 - [`docs/winning-strategy.md`](docs/winning-strategy.md): 수상 목표 피벗 전략
 - [`docs/hackathon-learning-pack.md`](docs/hackathon-learning-pack.md): 전체 학습 진입점
