@@ -11,6 +11,7 @@ Google Cloud Study Jam Hackathon 준비용 private repo.
 
 먼저 해커톤 학습 패키지부터 읽는다.
 
+- [`docs/google-skills-boost-credit-plan.md`](docs/google-skills-boost-credit-plan.md): 남은 Google Skills Boost 크레딧으로 먼저 할 실습 우선순위
 - [`docs/no-billing-study-session.md`](docs/no-billing-study-session.md): 과금 없이 바로 따라 하는 60분 기술 공부 세션
 - [`docs/winning-case-analysis-and-recommendation.md`](docs/winning-case-analysis-and-recommendation.md): 수상 케이스 분석 + 다니엘 최종 추천안
 - [`docs/winning-strategy.md`](docs/winning-strategy.md): 수상 목표 피벗 전략
@@ -30,15 +31,16 @@ streamlit run src/app.py
 
 ```text
 docs/
-  winning-strategy.md             # 수상 목표 피벗 전략
-  hackathon-learning-pack.md       # 학습 패키지 진입점
-  concepts-practices-examples.md   # 개념/실습/활용 예시
-  demo-playbook.md                 # 샘플 입력/발표/fallback
-  plan.md                          # 전체 준비 플랜
-  free-study-topics.md             # 과금 없이 공부할 주제/순서
-  studyjam-hackathon-guide.md      # 진행 예상/무과금 학습 가이드
-  judging-story.md                 # 발표/심사 스토리
-  idea-bank.md                     # 아이디어 후보
+  google-skills-boost-credit-plan.md # 남은 Skills Boost 크레딧 사용 우선순위
+  winning-strategy.md                # 수상 목표 피벗 전략
+  hackathon-learning-pack.md          # 학습 패키지 진입점
+  concepts-practices-examples.md      # 개념/실습/활용 예시
+  demo-playbook.md                    # 샘플 입력/발표/fallback
+  plan.md                             # 전체 준비 플랜
+  free-study-topics.md                # 과금 없이 공부할 주제/순서
+  studyjam-hackathon-guide.md         # 진행 예상/무과금 학습 가이드
+  judging-story.md                    # 발표/심사 스토리
+  idea-bank.md                        # 아이디어 후보
 stages/
   00-gcp-warmup/          # GCP/Cloud Shell 감각 회복
   01-gemini-api/          # Gemini API 최소 호출

@@ -24,24 +24,28 @@
    - 수상 목표 기준 피벗 전략
    - Study Jam Buddy를 Hackathon Co-pilot으로 강화하는 방향
 
-2. [`free-study-topics.md`](./free-study-topics.md)
+2. [`google-skills-boost-credit-plan.md`](./google-skills-boost-credit-plan.md)
+   - 남은 Google Skills Boost 크레딧으로 먼저 할 실습 우선순위
+   - Gemini / Cloud Run / Firebase / RAG / Secret Manager 선택 기준
+
+3. [`free-study-topics.md`](./free-study-topics.md)
    - 과금 없이 공부할 전체 범위
    - 무엇을 깊게 보고, 무엇을 피할지
 
-3. [`concepts-practices-examples.md`](./concepts-practices-examples.md)
+4. [`concepts-practices-examples.md`](./concepts-practices-examples.md)
    - 개념 → 로컬 실습 → 해커톤 활용 예시
    - Gemini, Streamlit, Cloud Run, Firestore, Storage, 비용 관리
 
-3. [`demo-playbook.md`](./demo-playbook.md)
+5. [`demo-playbook.md`](./demo-playbook.md)
    - 발표용 샘플 입력
    - 데모 흐름
    - 장애 시 fallback 멘트
    - 120분 당일 운영법
 
-4. [`judging-story.md`](./judging-story.md)
+6. [`judging-story.md`](./judging-story.md)
    - 3분 발표 대본
 
-5. [`plan.md`](./plan.md)
+7. [`plan.md`](./plan.md)
    - 실제 준비 일정과 구현 범위
 
 ---
