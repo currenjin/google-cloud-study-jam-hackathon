@@ -105,6 +105,9 @@
 - 새 전개가 기존 Bible에 없는 인물을 요구할 때만 new_characters에 1명을 추가한다. 아니면 빈 배열을 반환한다.
 - dialogues의 character_id는 기존 Bible 또는 new_characters의 id만 사용한다.
 - cuts는 1개만 생성한다. 120분 MVP에서는 장면당 여러 이미지 금지.
+- image_prompt에 샷 사이즈와 조명 무드를 명시한다 (예: "wide establishing shot",
+  "close-up", "dramatic low-key lighting"). 씬의 감정에 맞게 컷마다 다르게 —
+  같은 앵글이 반복되면 릴이 단조로워진다.
 - 대사는 짧고 자막으로 얹기 좋게.
 
 Story Bible: {bible_json}
