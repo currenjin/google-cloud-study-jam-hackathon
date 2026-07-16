@@ -1138,3 +1138,85 @@ input:checked + .slider:before {
   letter-spacing: -1px;
   font-family: 'Noto Sans KR', 'Outfit', sans-serif;
 }
+
+/* ============ 파이널 폴리시 패스 (마감 전 CSS-only) ============ */
+
+/* 릴 재생/프리미어 버튼: 시선 집중 */
+.btn-play-reels {
+  background: linear-gradient(135deg, #FF2E93 0%, #FF8E53 100%);
+  border: none;
+  color: #fff;
+  font-weight: 800;
+  border-radius: 99px;
+  padding: 10px 16px;
+  box-shadow: 0 0 16px rgba(255, 46, 147, 0.45);
+  animation: glowPulse 2.4s ease-in-out infinite;
+}
+
+/* 시드 입력: 크고 시원하게 */
+.seed-textarea {
+  border-radius: 16px;
+  font-size: 16px;
+  line-height: 1.6;
+  border: 1.5px solid rgba(255, 46, 147, 0.25);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.seed-textarea:focus {
+  border-color: #FF2E93;
+  box-shadow: 0 0 0 4px rgba(255, 46, 147, 0.15);
+  outline: none;
+}
+.relay-textarea:focus {
+  border-color: #FF2E93;
+  box-shadow: 0 0 0 4px rgba(255, 46, 147, 0.15);
+  outline: none;
+}
+
+/* 컷 프레임: 스크린 느낌의 깊이 */
+.visual-viewport {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 30px rgba(255, 46, 147, 0.07);
+}
+
+/* 대사 버블: 채팅 감성 */
+.dialogue-bubble {
+  border-radius: 14px;
+  border-left: 3px solid #FF2E93;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 10px 14px;
+  transition: transform 0.12s ease;
+}
+.dialogue-bubble:nth-child(even) { border-left-color: #4AC7FF; }
+.speaker { font-weight: 800; letter-spacing: 0.02em; }
+
+/* 치트키: 알약 스티커 */
+.cheat-item {
+  border-radius: 99px;
+  border: 1px solid rgba(255, 142, 83, 0.35);
+  background: rgba(255, 142, 83, 0.08);
+  font-weight: 700;
+}
+.cheat-item:hover {
+  background: rgba(255, 142, 83, 0.18);
+  border-color: #FF8E53;
+  box-shadow: 0 4px 14px rgba(255, 142, 83, 0.25);
+}
+
+/* 씬 헤더: 글래스 바 */
+.scene-header {
+  backdrop-filter: blur(12px);
+  background: rgba(11, 11, 12, 0.72);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* 인물 태그: 캐스팅 카드 느낌 */
+.profile-tag {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+.profile-tag-name { color: #FF8E53; font-weight: 800; }
+
+/* 엔딩/오버레이 버튼 통일감 */
+.btn-download-video { border-radius: 99px; font-weight: 800; }
+.btn { border-radius: 14px; }
