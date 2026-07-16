@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import mockData from '../demo-assets/mock-scenes.json'
 import { generateStoryBible, generateNextScene, generateImage, generateHighlightVideo } from './gemini'
@@ -102,8 +102,30 @@ function App() {
     }, 1200)
   }
 
+  // Veo 클립은 백그라운드에서 생성 — 릴레이 턴 진행을 절대 막지 않는다.
+  // veoRunRef는 리셋/새 드라마 시작 후 도착한 이전 드라마의 클립이 잘못 꽂히는 것을 방지.
+  const veoRunRef = useRef(0)
+  const startBackgroundVeo = (sceneIndex, imagePrompt, imageUrl) => {
+    const runId = veoRunRef.current
+    generateHighlightVideo(imagePrompt, imageUrl)
+      .then(videoUrl => {
+        if (veoRunRef.current !== runId) return
+        setScenes(prev => {
+          if (!prev[sceneIndex] || !prev[sceneIndex].cuts || !prev[sceneIndex].cuts[0]) return prev
+          const next = [...prev]
+          next[sceneIndex] = {
+            ...next[sceneIndex],
+            cuts: [{ ...next[sceneIndex].cuts[0], video_url: videoUrl }]
+          }
+          return next
+        })
+      })
+      .catch(err => console.error('Background Veo generation failed', err))
+  }
+
   // 4. 드라마 킥오프 (실제 API 기반)
   const startDrama = async () => {
+    veoRunRef.current += 1
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey || apiKey === '여기에붙여넣기' || apiKey.trim() === '') {
       alert("Gemini API Key가 누락되었습니다. 데모 모드로 체험을 시작합니다.");
@@ -136,16 +158,10 @@ function App() {
             sceneData.cuts[0].image_url = imageUrl;
           }
 
-          // 🔥 Real-time Veo Video Generation for 1st Scene
+          // Veo 클립은 백그라운드 생성 — 씬은 이미지로 즉시 진행, 클립이 준비되면 릴에서 자동 교체
           if (imageUrl) {
-            setLoadingText('Veo 촬영 감독 가동 중... (실제 비디오 클립 생성 중 - 약 15~20초 소요)');
-            try {
-              const videoUrl = await generateHighlightVideo(sceneData.cuts[0].image_prompt, imageUrl);
-              sceneData.cuts[0].video_url = videoUrl;
-            } catch (veoErr) {
-              console.error('Failed to generate initial Veo video', veoErr);
-              sceneData.cuts[0].video_url = null;
-            }
+            sceneData.cuts[0].video_url = null;
+            startBackgroundVeo(0, sceneData.cuts[0].image_prompt, imageUrl);
           }
         } catch (imgError) {
           console.error('Image or video generation failed, falling back to text card', imgError);
@@ -223,16 +239,10 @@ function App() {
           const imageUrl = await generateImage(nextSceneData.cuts[0].image_prompt);
           nextSceneData.cuts[0].image_url = imageUrl;
 
-          // 🔥 Real-time Veo Video Generation for Next Scene
+          // Veo 클립은 백그라운드 생성 — 릴레이 턴은 이미지로 즉시 진행
           if (imageUrl) {
-            setLoadingText('Veo 촬영 감독 가동 중... (실제 비디오 클립 생성 중 - 약 15~20초 소요)');
-            try {
-              const videoUrl = await generateHighlightVideo(nextSceneData.cuts[0].image_prompt, imageUrl);
-              nextSceneData.cuts[0].video_url = videoUrl;
-            } catch (veoErr) {
-              console.error('Failed to generate subsequent Veo video', veoErr);
-              nextSceneData.cuts[0].video_url = null;
-            }
+            nextSceneData.cuts[0].video_url = null;
+            startBackgroundVeo(scenes.length, nextSceneData.cuts[0].image_prompt, imageUrl);
           }
         } catch (imgError) {
           console.error('Image or video generation failed, falling back to text card', imgError);
@@ -277,6 +287,7 @@ function App() {
   // 6. 새 드라마로 초기화 (SEED 단계로 리셋 및 localStorage 청소)
   const resetDrama = () => {
     if (confirm('현재 제작 중인 드라마를 종료하고 새 드라마를 시작하시겠습니까?')) {
+      veoRunRef.current += 1
       setStage('SEED')
       setBible(null)
       setScenes([])
