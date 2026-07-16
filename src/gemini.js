@@ -127,8 +127,12 @@ const ARC_STAGES = [
 
 export const getArcStage = (sceneNumber) => ARC_STAGES[Math.min(Math.max(sceneNumber, 1), 4) - 1];
 
-export const generateNextScene = async (bible, storySummary, userTwist, sceneNumber = 1) => {
+export const generateNextScene = async (bible, storySummary, userTwist, sceneNumber = 1, prevScene = null) => {
   const arc = getArcStage(sceneNumber);
+  const continuity = prevScene
+    ? `\n직전 화 마지막 상황: ${prevScene.narration || ''} / 마지막 대사: ${(prevScene.dialogues || []).map(d => d.line).join(' | ')}
+- 이번 화의 첫 장면은 직전 화의 마지막 순간에서 곧바로 이어진다. 시간·장소 점프가 필요하면 내레이션 한 문장으로 자연스럽게 연결하라.`
+    : '';
   const visualStyle = bible.visual_style || '';
   const isReal = !visualStyle.toLowerCase().includes('mannequin') && 
                  !visualStyle.toLowerCase().includes('puppet') && 
@@ -148,7 +152,7 @@ export const generateNextScene = async (bible, storySummary, userTwist, sceneNum
 
   const prompt = `너는 K-드라마 연출가다. Story Bible과 지금까지의 줄거리, 그리고 새 참가자가 입력한 "다음 전개 한 줄"을 받아 다음 씬을 만들어라.
 
-이번 화는 4화 구조의 ${sceneNumber}화, 서사 단계는 **${arc.name}**이다.
+이번 화는 4화 구조의 ${sceneNumber}화, 서사 단계는 **${arc.name}**이다.${continuity}
 - 각본 지침: ${arc.writing}
 - image_prompt의 샷/조명도 이 단계에 맞춰라: ${arc.camera}
 ${sceneNumber >= 4 ? '- 이번 화가 마지막 화다. 반드시 이야기를 완결지어라.' : ''}
@@ -236,11 +240,19 @@ Story Bible: ${JSON.stringify(bible)}
   return data;
 };
 
-export const generateImage = async (imagePrompt) => {
+export const generateImage = async (imagePrompt, refImageBase64 = null) => {
   // 검증됨: imagen-3.0/4.0은 이 계정에서 404, gemini-3.1-flash-image는 REST로 9:16 생성 확인
+  // refImageBase64: 직전 컷 이미지 — 같은 배우/의상/세트로 이어지는 다음 순간을 그리게 한다 (장면 연속성)
+  let contents = imagePrompt;
+  if (refImageBase64 && refImageBase64.includes(';base64,')) {
+    contents = [
+      { inlineData: { data: refImageBase64.split(';base64,')[1], mimeType: 'image/jpeg' } },
+      { text: 'This is the previous shot of the same drama. Keep the EXACT same actors, faces, outfits, set and lighting, and depict the NEXT moment of the story: ' + imagePrompt }
+    ];
+  }
   const call = ai.models.generateContent({
     model: 'gemini-3.1-flash-image',
-    contents: imagePrompt,
+    contents: contents,
     config: {
       responseModalities: ['IMAGE'],
       imageConfig: { aspectRatio: '9:16' }

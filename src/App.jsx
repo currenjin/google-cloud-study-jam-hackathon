@@ -228,7 +228,7 @@ function App() {
       
       // Step 1: 씬 생성
       setLoadingText('대본 수정 중... (씬 대본 작성)');
-      const nextSceneData = await generateNextScene(bible, currentStorySummary, userTwist, scenes.length + 1);
+      const nextSceneData = await generateNextScene(bible, currentStorySummary, userTwist, scenes.length + 1, scenes[scenes.length - 1]);
       nextSceneData.user_twist = userTwist;
       nextSceneData.image_url = null;
 
@@ -236,7 +236,7 @@ function App() {
       if (nextSceneData.cuts && nextSceneData.cuts.length > 0 && nextSceneData.cuts[0].image_prompt) {
         setLoadingText('스튜디오 촬영 중... (이미지 생성)');
         try {
-          const imageUrl = await generateImage(nextSceneData.cuts[0].image_prompt);
+          const imageUrl = await generateImage(nextSceneData.cuts[0].image_prompt, scenes[scenes.length - 1]?.cuts?.[0]?.image_url);
           nextSceneData.cuts[0].image_url = imageUrl;
 
           // Veo 클립은 백그라운드 생성 — 릴레이 턴은 이미지로 즉시 진행
@@ -483,62 +483,62 @@ function App() {
         // 캔버스 초기화
         ctx.clearRect(0, 0, 720, 1280);
 
-        // 1. 배경 이미지 그리기
-        // 비디오 재생 제어
+        // 1. 배경 그리기 — 씬 마지막 FADE_MS 동안 다음 컷이 겹치며 하나의 흐름처럼 이어진다
+        const FADE_MS = 700;
+        const fadeActive = sceneElapsed > 3500 - FADE_MS && currentSceneIdx + 1 < scenes.length;
+
+        // 비디오 재생 제어 (크로스페이드 중엔 다음 컷 비디오도 미리 재생)
         Object.keys(loadedVideos).forEach(idx => {
+          const n = Number(idx);
           const video = loadedVideos[idx];
-          if (Number(idx) === currentSceneIdx) {
+          const shouldPlay = n === currentSceneIdx || (fadeActive && n === currentSceneIdx + 1);
+          if (shouldPlay) {
             if (video.paused) {
               video.play().catch(e => console.error("Video play error:", e));
             }
-          } else {
-            if (!video.paused) {
-              video.pause();
-              video.currentTime = 0;
-            }
+          } else if (!video.paused) {
+            video.pause();
+            video.currentTime = 0;
           }
         });
 
-        if (loadedVideos[currentSceneIdx]) {
-          const video = loadedVideos[currentSceneIdx];
-          const w = 720;
-          const h = 1280;
-
+        const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
+        const drawCut = (idx, alpha, progress) => {
+          const sceneToDraw = scenes[idx];
+          if (!sceneToDraw) return;
           ctx.save();
-          ctx.translate(360, 640);
-          ctx.drawImage(video, -w / 2, -h / 2, w, h);
+          ctx.globalAlpha = alpha;
+          if (loadedVideos[idx]) {
+            ctx.translate(360, 640);
+            ctx.drawImage(loadedVideos[idx], -360, -640, 720, 1280);
+          } else if (loadedImages[idx]) {
+            const scale = 1.0 + progress * 0.12; // 12% 줌인
+            const w = 720 * scale;
+            const h = 1280 * scale;
+            ctx.translate(360, 640);
+            ctx.drawImage(loadedImages[idx], -w / 2, -h / 2, w, h);
+          } else {
+            // 폴백 텍스트 카드
+            ctx.fillStyle = '#0e0e11';
+            ctx.fillRect(0, 0, 720, 1280);
+            ctx.fillStyle = '#E2E2E8';
+            ctx.font = '28px sans-serif';
+            ctx.textAlign = 'center';
+            wrapText(sceneToDraw.narration, 360, 640, 640, 44);
+          }
           ctx.restore();
-
-          // 무대 느낌의 암전 처리 오버레이 (실사 스타일이면 더 연하게 0.22, 목각인형이면 0.42)
-          const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
+          // 암전 오버레이 (알파 동기화)
+          ctx.save();
+          ctx.globalAlpha = alpha;
           ctx.fillStyle = isRealStyle ? 'rgba(0, 0, 0, 0.22)' : 'rgba(0, 0, 0, 0.42)';
           ctx.fillRect(0, 0, 720, 1280);
-        } else if (loadedImages[currentSceneIdx]) {
-          const img = loadedImages[currentSceneIdx];
-          
-          const scale = 1.0 + progressPct * 0.12; // 12% 줌인
-          const w = 720 * scale;
-          const h = 1280 * scale;
-
-          ctx.save();
-          ctx.translate(360, 640);
-          ctx.drawImage(img, -w / 2, -h / 2, w, h);
           ctx.restore();
+        };
 
-          // 무대 느낌의 암전 처리 오버레이 (실사 스타일이면 더 연하게 0.22, 목각인형이면 0.42)
-          const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
-          ctx.fillStyle = isRealStyle ? 'rgba(0, 0, 0, 0.22)' : 'rgba(0, 0, 0, 0.42)';
-          ctx.fillRect(0, 0, 720, 1280);
-
-
-        } else {
-          // 폴백 단색 배경
-          ctx.fillStyle = '#0e0e11';
-          ctx.fillRect(0, 0, 720, 1280);
-          ctx.fillStyle = '#E2E2E8';
-          ctx.font = '28px sans-serif';
-          ctx.textAlign = 'center';
-          wrapText(scene.narration, 360, 640, 640, 44);
+        drawCut(currentSceneIdx, 1, progressPct);
+        if (fadeActive) {
+          const t = (sceneElapsed - (3500 - FADE_MS)) / FADE_MS;
+          drawCut(currentSceneIdx + 1, Math.min(1, t), 0);
         }
 
         // 2. 씬 전환 시 에피소드 오버레이 (첫 1초 페이드아웃)
@@ -666,73 +666,6 @@ function App() {
             <p className="poster-subtitle">Reels Drama</p>
             <div className="poster-badge" style={{ background: visualStyleType === 'real' ? '#E63946' : 'var(--border-color)' }}>
               {visualStyleType === 'real' ? '🎬 ULTRA REALISTIC K-DRAMA' : '🧸 MANNEQUIN DIORAMA'}
-            </div>
-          </div>
-
-          {/* 🎭 시각 테마 스타일 선택 카드 */}
-          <div className="input-group" style={{ marginTop: '16px' }}>
-            <label className="input-label">🎬 비주얼 스타일 테마 선택</label>
-            <div className="theme-selectors" style={{
-              display: 'flex',
-              gap: '12px',
-              marginTop: '8px'
-            }}>
-              <button
-                type="button"
-                className={`theme-card ${visualStyleType === 'real' ? 'active' : ''}`}
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  borderRadius: '12px',
-                  background: visualStyleType === 'real' ? 'rgba(230, 57, 70, 0.15)' : 'var(--panel-bg)',
-                  border: visualStyleType === 'real' ? '2px solid #E63946' : '1px solid var(--border-color)',
-                  color: 'white',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s ease'
-                }}
-                onClick={() => {
-                  setVisualStyleType('real');
-                  if (seed === '재벌집 막내인형과 편의점 알바인형의 계약연애' || seed === '기억상실증에 걸린 재벌 3세 목각인형과 사실은 출생의 비밀을 숨긴 편의점 알바인형') {
-                    setSeed('재벌집 막내아들과 편의점 알바생의 계약연애');
-                  }
-                }}
-              >
-                <span style={{ fontSize: '24px' }}>🎬</span>
-                <span style={{ fontWeight: 'bold', fontSize: '13px' }}>초실사 K-드라마</span>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>실사 배우풍 고화질</span>
-              </button>
-              <button
-                type="button"
-                className={`theme-card ${visualStyleType === 'mannequin' ? 'active' : ''}`}
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  borderRadius: '12px',
-                  background: visualStyleType === 'mannequin' ? 'rgba(255, 46, 147, 0.15)' : 'var(--panel-bg)',
-                  border: visualStyleType === 'mannequin' ? '2px solid var(--primary-color)' : '1px solid var(--border-color)',
-                  color: 'white',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s ease'
-                }}
-                onClick={() => {
-                  setVisualStyleType('mannequin');
-                  if (seed === '재벌집 막내아들과 편의점 알바생의 계약연애' || seed === '기억상실증에 걸린 재벌 3세와 사실은 출생의 비밀을 숨긴 편의점 알바생') {
-                    setSeed('재벌집 막내인형과 편의점 알바인형의 계약연애');
-                  }
-                }}
-              >
-                <span style={{ fontSize: '24px' }}>🧸</span>
-                <span style={{ fontWeight: 'bold', fontSize: '13px' }}>목각인형 극장</span>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>관절 인형 디오라마</span>
-              </button>
             </div>
           </div>
 
@@ -912,7 +845,13 @@ function App() {
                   setStage('REELS');
                 }}
               >
-                ▶ 릴 재생
+                {(() => {
+                  const totalCuts = scenes.filter(s => s.cuts && s.cuts[0] && s.cuts[0].image_url).length;
+                  const readyClips = scenes.filter(s => s.cuts && s.cuts[0] && s.cuts[0].video_url).length;
+                  if (totalCuts > 0 && readyClips >= totalCuts) return '🎬 프리미어 상영 (전편 영상 완성)';
+                  if (totalCuts > 0) return `▶ 릴 재생 · 영상 ${readyClips}/${totalCuts} 촬영 중`;
+                  return '▶ 릴 재생';
+                })()}
               </button>
             </div>
           </header>
