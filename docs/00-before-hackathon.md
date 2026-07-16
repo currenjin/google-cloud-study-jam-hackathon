@@ -33,5 +33,6 @@
 
 - [ ] @gcplab.me 계정 ID/PW 수령 → 시크릿 창에서 <https://console.cloud.google.com> 로그인 → 할당된 프로젝트 선택
 - [ ] <https://ai.studio> 로그인 → "Get API key" → 키가 안 보이면 "Import Projects"로 프로젝트 선택 → API 키 확보
-- [ ] Antigravity 로그인 (프로젝트 ID 지정!)
-- [ ] 새 public GitHub repo 생성 (예: `reels-drama`)
+- [ ] Antigravity 로그인 (프로젝트 ID 지정!) → **이 레포 클론해서 폴더 열기** (AGENTS.md 자동 로드)
+- [ ] `cp .env.example .env` → API 키 입력
+- [ ] 13:20 시작과 동시에 [04-kickoff-prompts.md](04-kickoff-prompts.md)의 M1 프롬프트 붙여넣기

@@ -10,18 +10,29 @@
 - **비주얼 콘셉트:** 목각인형(artist mannequin) 디오라마 스타일 — 캐릭터 일관성 문제를 해결하면서 그 자체로 밈 감성
 - **핵심 기믹:** Story Bible(JSON)로 인물·배경·톤을 고정하고, 턴마다 Gemini가 각본 + Nano Banana가 컷 이미지를 생성
 
+## 🚀 당일 시작 순서 (13:20 개발 시작과 동시에)
+
+이 레포가 곧 프로젝트 워크스페이스다. Antigravity로 이 폴더를 열면 `AGENTS.md`가 자동으로 에이전트 컨텍스트에 주입된다.
+
+1. Antigravity 로그인 — **프로젝트 ID 지정 필수** (Business Plan 적용)
+2. 이 레포 클론 → Antigravity로 폴더 열기
+3. `cp .env.example .env` → AI Studio에서 받은 API 키 입력
+4. [docs/04-kickoff-prompts.md](docs/04-kickoff-prompts.md)의 **M1 프롬프트를 그대로 붙여넣기** → 개발 시작
+
 ## 문서
 
 | 문서 | 내용 |
 |---|---|
+| [AGENTS.md](AGENTS.md) | Antigravity 에이전트 컨텍스트 (스택·설계·스코프 결정 사항, 자동 로드) |
 | [docs/00-before-hackathon.md](docs/00-before-hackathon.md) | 해커톤 시작 전에 해놓을 것 (환경 세팅, 로지스틱스) |
 | [docs/01-hackathon-plan.md](docs/01-hackathon-plan.md) | 해커톤에서 해야 할 것 (120분 타임박스 실행 계획) |
 | [docs/02-winning-strategy.md](docs/02-winning-strategy.md) | 수상을 위해 준비해야 할 것 (심사 기준 공략, 제출물, 발표) |
 | [docs/03-prompts.md](docs/03-prompts.md) | Story Bible 스키마, 프롬프트 3종, 데모 시나리오 (현장 복붙용) |
+| [docs/04-kickoff-prompts.md](docs/04-kickoff-prompts.md) | Antigravity에 붙여넣을 M1–M3 킥오프 프롬프트 |
 
 ## ⚠️ 잊지 말 것
 
-- **이 레포는 기획/준비용.** 규정상 프로젝트는 해커톤 현장에서 새로 개발해야 하므로, 실제 코드는 **당일 새 public repo를 만들어서** 작업한다.
+- 규정상 재제출 금지는 **타 대회 제출/수상 이력 프로젝트** 대상 — 이 레포는 이번 해커톤용 신규 기획이므로 여기서 바로 개발한다 (현재는 기획 문서만 있고 코드는 현장에서 작성).
 - 제공되는 @gcplab.me 계정과 GCP 프로젝트는 **행사 종료 즉시 삭제**된다. 코드는 수시로 GitHub에 푸시.
 - 프로젝트 내 자율형 AI 에이전트(OpenClaw 등) 사용 금지.
 
