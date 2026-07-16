@@ -49,3 +49,5 @@
 - **Technical Demo** — 에러 없이 정상 동작하는가
 - **Impact** — 실제 문제를 해결하는가, 문제가 충분히 중요한가
 - **Creativity** — 기존에 없던 새로운 접근인가
+
+<!-- Connection test by Antigravity -->
