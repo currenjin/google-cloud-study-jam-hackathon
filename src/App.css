@@ -83,10 +83,30 @@ body {
 .stage-seed {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   height: 100%;
   padding: 40px 24px;
   background: radial-gradient(circle at top, rgba(255, 46, 147, 0.15) 0%, rgba(11, 11, 12, 0) 60%);
+  overflow-y: auto;
+  gap: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.stage-seed::-webkit-scrollbar {
+  width: 6px;
+}
+
+.stage-seed::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.stage-seed::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+
+.stage-seed::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .poster-wrapper {
@@ -263,6 +283,25 @@ body {
   flex-direction: column;
   padding: 16px;
   gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.scene-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scene-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scene-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+
+.scene-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* 9:16 비주얼 포트 */
