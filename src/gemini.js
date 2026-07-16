@@ -10,14 +10,16 @@ const withTimeout = (promise, ms = 15000) => {
   ]);
 };
 
-export const generateStoryBible = async (userSeed) => {
-  const prompt = `너는 숏폼 드라마 기획자다. 사용자가 준 시드(텍스트 또는 이미지 설명)를 바탕으로 아래 JSON 스키마에 맞는 드라마 설정(Story Bible)을 만들어라.
-규칙:
-- visual_style 필드는 다음 문구를 글자 그대로 유지한다: "wooden artist mannequin figures on a miniature diorama stage set, soft studio lighting, shallow depth of field, cinematic color grading, 9:16 vertical"
-- 등장인물은 2~3명. 각 인물에 시각적으로 구분되는 marker(소품/색)를 반드시 부여한다.
-- tone은 과장된 K-드라마 문법(막장, 재벌, 기억상실 환영)으로.
-- story_summary는 "아직 시작 전" 상태로 도입부 한 줄만.
-- JSON만 출력한다.
+export const generateStoryBible = async (userSeed, imageBase64) => {
+  const prompt = `너는 숏폼 드라마 기획자다. 사용자가 준 시드(텍스트)와 업로드된 참고 이미지(있는 경우)를 바탕으로 아래 JSON 스키마에 맞는 드라마 설정(Story Bible)을 만들어라.
+중요 규칙:
+1. 만약 참고 이미지가 제공되었다면, 이미지에 등장하는 핵심 인물들의 외모, 성별, 연령, 옷차림을 철저히 분석하여 인물의 성격(personality)과 외모 속성을 정확히 대조 매핑하라.
+2. 등장인물은 반드시 2명으로 구성한다. 각 인물의 외모를 결정하는 다음 속성값들을 추론하여 매핑해야 한다:
+   - gender: "M" 또는 "F"
+   - hair_style: 'spiky' (남자 스포티/짧은머리), 'ponytail' (포니테일), 'long_wavy' (긴 웨이브머리), 'bob_cut' (단발머리), 'short' (기본 깔끔한 숏컷) 중 하나를 선택하라.
+   - outfit_type: 'black_suit' (정장/오피스룩), 'blue_apron' (앞치마/캐주얼 알바), 'red_dress' (럭셔리 드레스), 'white_coat' (의사 가운/연구원), 'casual' (캐주얼 후드티셔츠) 중 하나를 선택하라.
+3. visual_style 필드는 다음 문구를 글자 그대로 유지한다: "wooden artist mannequin figures on a miniature diorama stage set, soft studio lighting, shallow depth of field, cinematic color grading, 9:16 vertical"
+4. JSON만 출력한다.
 
 시드: ${userSeed}`;
 
@@ -35,11 +37,14 @@ export const generateStoryBible = async (userSeed) => {
           properties: {
             id: { type: 'string' },
             name: { type: 'string' },
+            gender: { type: 'string', enum: ["M", "F"] },
+            hair_style: { type: 'string', enum: ["spiky", "ponytail", "long_wavy", "bob_cut", "short"] },
+            outfit_type: { type: 'string', enum: ["black_suit", "blue_apron", "red_dress", "white_coat", "casual"] },
             marker: { type: 'string' },
             personality: { type: 'string' },
             speech_style: { type: 'string' }
           },
-          required: ["id", "name", "marker", "personality", "speech_style"]
+          required: ["id", "name", "gender", "hair_style", "outfit_type", "marker", "personality", "speech_style"]
         }
       },
       setting: { type: 'string' },
@@ -48,9 +53,28 @@ export const generateStoryBible = async (userSeed) => {
     required: ["title", "logline", "tone", "visual_style", "characters", "setting", "story_summary"]
   };
 
+  let contents = prompt;
+  if (imageBase64) {
+    let cleanBase64 = imageBase64;
+    if (imageBase64.includes(';base64,')) {
+      cleanBase64 = imageBase64.split(';base64,')[1];
+    }
+    contents = [
+      {
+        inlineData: {
+          data: cleanBase64,
+          mimeType: 'image/jpeg'
+        }
+      },
+      {
+        text: prompt
+      }
+    ];
+  }
+
   const call = ai.models.generateContent({
-    model: 'gemini-1.5-flash',
-    contents: prompt,
+    model: 'gemini-2.5-flash',
+    contents: contents,
     config: {
       responseMimeType: 'application/json',
       responseSchema: responseSchema
@@ -127,7 +151,7 @@ Story Bible: ${JSON.stringify(bible)}
   };
 
   const call = ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     contents: prompt,
     config: {
       responseMimeType: 'application/json',
@@ -149,7 +173,6 @@ Story Bible: ${JSON.stringify(bible)}
     }
   }
 
-  return data;
 };
 
 export const generateImage = async (imagePrompt) => {

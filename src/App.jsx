@@ -32,6 +32,8 @@ function App() {
   const [recordedVideoUrl, setRecordedVideoUrl] = useState(null)
   const [videoCompilationText, setVideoCompilationText] = useState('')
   const [isVeoMode, setIsVeoMode] = useState(false)
+  const [uploadedImage, setUploadedImage] = useState(null)
+  const [uploadedImagePreview, setUploadedImagePreview] = useState(null)
 
   // 1. localStorage 로드 및 복구
   useEffect(() => {
@@ -106,7 +108,7 @@ function App() {
     try {
       // Step 1: 바이블 생성
       setLoadingText('대본 작가 섭외 중... (바이블 구성)');
-      const bibleData = await generateStoryBible(seed);
+      const bibleData = await generateStoryBible(seed, uploadedImage);
       
       // Step 2: 첫 번째 씬 생성 ( user_twist 는 '이야기를 시작한다' 고정 )
       setLoadingText('첫 번째 씬 촬영 중... (씬 대본 작성)');
@@ -118,8 +120,12 @@ function App() {
       if (sceneData.cuts && sceneData.cuts.length > 0 && sceneData.cuts[0].image_prompt) {
         setLoadingText('디렉터 컷 인화 중... (이미지 생성)');
         try {
-          const imageUrl = await generateImage(sceneData.cuts[0].image_prompt);
-          sceneData.cuts[0].image_url = imageUrl;
+          if (uploadedImage) {
+            sceneData.cuts[0].image_url = uploadedImage;
+          } else {
+            const imageUrl = await generateImage(sceneData.cuts[0].image_prompt);
+            sceneData.cuts[0].image_url = imageUrl;
+          }
         } catch (imgError) {
           console.error('Image generation failed, falling back to text card', imgError);
           sceneData.cuts[0].image_url = null;
@@ -242,6 +248,8 @@ function App() {
       setCurrentSceneIndex(0)
       setIsDemoMode(false)
       setUserTwist('')
+      setUploadedImage(null)
+      setUploadedImagePreview(null)
       localStorage.removeItem('reels_drama_state')
     }
   }
@@ -346,7 +354,7 @@ function App() {
       let startTime = null;
 
       // 🌟 실사풍 목각인형 마리오네트 관절 드로잉 유틸리티
-      const drawPuppet = (x, y, pose, scale, isSpeaking, name, isMale, colorTheme) => {
+      const drawPuppet = (x, y, pose, scale, isSpeaking, name, isMale, colorTheme, hairStyle, outfitType) => {
         ctx.save();
         ctx.translate(x, y);
         ctx.scale(scale, scale);
@@ -449,24 +457,201 @@ function App() {
         drawSegment(12, 50, 5, '#422812', '#b88555', '#6b431e');
         ctx.restore();
 
-        // 2. 몸통 (Body) - 그라데이션 목재 질감
+        // 2. 몸통 (Body) - 의상 종류에 따른 커스텀 패브릭/디테일 렌더링
         ctx.save();
-        const bodyGrad = ctx.createLinearGradient(-35, 0, 35, 0);
-        bodyGrad.addColorStop(0, '#754b22');
-        bodyGrad.addColorStop(0.3, '#d39e62');
-        bodyGrad.addColorStop(0.7, '#fcd6a1');
-        bodyGrad.addColorStop(1, '#825327');
-        ctx.fillStyle = bodyGrad;
-        ctx.strokeStyle = '#422812';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(-35, -70);
-        ctx.bezierCurveTo(-38, -20, -32, 40, -28, 75);
-        ctx.lineTo(28, 75);
-        ctx.bezierCurveTo(32, 40, 38, -20, 35, -70);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        if (outfitType === 'black_suit') {
+          // 🕴️ 정장/오피스룩
+          ctx.fillStyle = '#1C1C1E';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-35, -70);
+          ctx.bezierCurveTo(-38, -20, -32, 40, -28, 75);
+          ctx.lineTo(28, 75);
+          ctx.bezierCurveTo(32, 40, 38, -20, 35, -70);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // 흰 셔츠 깃
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.moveTo(-12, -70);
+          ctx.lineTo(12, -70);
+          ctx.lineTo(0, -42);
+          ctx.closePath();
+          ctx.fill();
+
+          // 빨간 넥타이
+          ctx.fillStyle = '#E63946';
+          ctx.beginPath();
+          ctx.moveTo(-3, -48);
+          ctx.lineTo(3, -48);
+          ctx.lineTo(5, -15);
+          ctx.lineTo(0, -5);
+          ctx.lineTo(-5, -15);
+          ctx.closePath();
+          ctx.fill();
+
+          // 정장 깃 라인
+          ctx.strokeStyle = '#3A3A3C';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(-12, -70);
+          ctx.lineTo(-24, -40);
+          ctx.lineTo(0, -10);
+          ctx.moveTo(12, -70);
+          ctx.lineTo(24, -40);
+          ctx.lineTo(0, -10);
+          ctx.stroke();
+
+        } else if (outfitType === 'blue_apron') {
+          // 👕 편의점 알바 앞치마
+          // 배경 티셔츠 (흰색)
+          ctx.fillStyle = '#F2F2F7';
+          ctx.strokeStyle = '#AEAEB2';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(-35, -70);
+          ctx.bezierCurveTo(-38, -20, -32, 40, -28, 75);
+          ctx.lineTo(28, 75);
+          ctx.bezierCurveTo(32, 40, 38, -20, 35, -70);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // 파란 앞치마
+          ctx.fillStyle = '#007AFF';
+          ctx.strokeStyle = '#0056B3';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-20, -60);
+          ctx.lineTo(20, -60);
+          ctx.lineTo(25, 75);
+          ctx.lineTo(-25, 75);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // 앞치마 주머니 및 어깨 끈
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(-12, 10, 24, 25); // 주머니
+          ctx.beginPath();
+          ctx.moveTo(-20, -60);
+          ctx.lineTo(-30, -70);
+          ctx.moveTo(20, -60);
+          ctx.lineTo(30, -70);
+          ctx.stroke();
+
+        } else if (outfitType === 'red_dress') {
+          // 👗 럭셔리 레드 드레스
+          const dressGrad = ctx.createLinearGradient(-35, -70, 35, 75);
+          dressGrad.addColorStop(0, '#E63946');
+          dressGrad.addColorStop(0.5, '#D62828');
+          dressGrad.addColorStop(1, '#9B2226');
+          ctx.fillStyle = dressGrad;
+          ctx.strokeStyle = '#640D14';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-25, -70);
+          ctx.bezierCurveTo(-35, -30, -38, 20, -32, 75);
+          ctx.lineTo(32, 75);
+          ctx.bezierCurveTo(38, 20, 35, -30, 25, -70);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // 레이스/데코 라인
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(-25, -70);
+          ctx.bezierCurveTo(0, -50, 0, -50, 25, -70);
+          ctx.stroke();
+
+        } else if (outfitType === 'white_coat') {
+          // 🥼 전문 의사 가운
+          // 안쪽 옷 (네이비 셔츠)
+          ctx.fillStyle = '#1D3557';
+          ctx.beginPath();
+          ctx.moveTo(-35, -70);
+          ctx.bezierCurveTo(-38, -20, -32, 40, -28, 75);
+          ctx.lineTo(28, 75);
+          ctx.bezierCurveTo(32, 40, 38, -20, 35, -70);
+          ctx.closePath();
+          ctx.fill();
+
+          // 흰색 의사 가운 외투
+          ctx.fillStyle = '#FFFFFF';
+          ctx.strokeStyle = '#D1D1D6';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          // 왼쪽 외투 절반
+          ctx.moveTo(-35, -70);
+          ctx.lineTo(-10, -70);
+          ctx.lineTo(-5, 75);
+          ctx.lineTo(-28, 75);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.beginPath();
+          // 오른쪽 외투 절반
+          ctx.moveTo(35, -70);
+          ctx.lineTo(10, -70);
+          ctx.lineTo(5, 75);
+          ctx.lineTo(28, 75);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // 청진기 목에 걸기
+          ctx.strokeStyle = '#4A4A4A';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, -65, 14, 0, Math.PI);
+          ctx.stroke();
+
+        } else if (outfitType === 'casual') {
+          // 🧥 캐주얼 핑크 후디
+          const hoodieGrad = ctx.createLinearGradient(-35, -70, 35, 75);
+          hoodieGrad.addColorStop(0, '#FF4D6D');
+          hoodieGrad.addColorStop(1, '#C71F37');
+          ctx.fillStyle = hoodieGrad;
+          ctx.strokeStyle = '#800F2F';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(-35, -70, 70, 145, 12);
+          ctx.fill();
+          ctx.stroke();
+
+          // 후디 주머니
+          ctx.fillStyle = '#FF758F';
+          ctx.beginPath();
+          ctx.roundRect(-18, 20, 36, 30, 6);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          // 기본 원목 피규어 질감
+          const bodyGrad = ctx.createLinearGradient(-35, 0, 35, 0);
+          bodyGrad.addColorStop(0, '#754b22');
+          bodyGrad.addColorStop(0.3, '#d39e62');
+          bodyGrad.addColorStop(0.7, '#fcd6a1');
+          bodyGrad.addColorStop(1, '#825327');
+          ctx.fillStyle = bodyGrad;
+          ctx.strokeStyle = '#422812';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(-35, -70);
+          ctx.bezierCurveTo(-38, -20, -32, 40, -28, 75);
+          ctx.lineTo(28, 75);
+          ctx.bezierCurveTo(32, 40, 38, -20, 35, -70);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+        ctx.restore();
 
         // 가슴팍의 캐릭터 전용 네온 마커 엠블럼 데코레이션
         ctx.fillStyle = colorTheme || '#FF2E93';
@@ -476,15 +661,55 @@ function App() {
         ctx.arc(0, -30, 8, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
-        ctx.restore();
 
         // 3. 목 관절 및 머리
         ctx.save();
         ctx.translate(0, -70);
         ctx.rotate(headRot);
+        
         // 목 peg
         drawSegment(12, -20, 3, '#422812', '#a07040', '#543618');
-        // 머리 - 둥근 3D 구체 느낌 구형 렌더링
+        
+        // 머리 구체 그리기 전에 뒤로 가는 머리카락 그리기 (포니테일 꼬리, 긴 생머리 뒤쪽)
+        if (hairStyle === 'ponytail') {
+          // 뒤로 묶은 꽁지머리
+          ctx.fillStyle = '#2C1B10';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(25, -30);
+          ctx.bezierCurveTo(65, -10, 55, 30, 45, 50);
+          ctx.bezierCurveTo(35, 30, 25, 10, 25, -30);
+          ctx.fill();
+          ctx.stroke();
+          
+          // 헤어 밴드 (민트색)
+          ctx.fillStyle = '#00F0FF';
+          ctx.beginPath();
+          ctx.arc(28, -24, 4, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (hairStyle === 'long_wavy') {
+          // 양옆 찰랑거리는 긴 웨이브
+          const wavyGrad = ctx.createLinearGradient(-45, -50, 45, 70);
+          wavyGrad.addColorStop(0, '#5C3D24');
+          wavyGrad.addColorStop(1, '#2C1B10');
+          ctx.fillStyle = wavyGrad;
+          ctx.strokeStyle = '#1E1104';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          // 왼쪽 긴머리
+          ctx.moveTo(-30, -50);
+          ctx.bezierCurveTo(-55, -20, -50, 40, -42, 80);
+          ctx.bezierCurveTo(-30, 40, -32, -10, -30, -50);
+          // 오른쪽 긴머리
+          ctx.moveTo(30, -50);
+          ctx.bezierCurveTo(55, -20, 50, 40, 42, 80);
+          ctx.bezierCurveTo(30, 40, 32, -10, 30, -50);
+          ctx.fill();
+          ctx.stroke();
+        }
+
+        // 머리 구체 - 둥근 3D 구체 느낌 구형 렌더링
         ctx.translate(0, -20);
         const headGrad = ctx.createRadialGradient(-10, -25, 5, 0, -25, 50);
         headGrad.addColorStop(0, '#fce4be');
@@ -497,6 +722,71 @@ function App() {
         ctx.arc(0, -25, 38, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
+
+        // 윗머리 & 앞머리 레이어 그리기 (구체 위에 얹음)
+        ctx.fillStyle = '#3a2412'; // 기본 다크브라운 헤어
+        ctx.strokeStyle = '#1e1104';
+        ctx.lineWidth = 1.5;
+
+        if (hairStyle === 'spiky') {
+          // ⚡ 스포티 번개 컷 (남자)
+          ctx.beginPath();
+          ctx.moveTo(-35, -35);
+          ctx.lineTo(-40, -60);
+          ctx.lineTo(-25, -55);
+          ctx.lineTo(-15, -75);
+          ctx.lineTo(0, -60);
+          ctx.lineTo(15, -75);
+          ctx.lineTo(25, -55);
+          ctx.lineTo(40, -60);
+          ctx.lineTo(35, -35);
+          ctx.bezierCurveTo(20, -50, -20, -50, -35, -35);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+        } else if (hairStyle === 'ponytail' || hairStyle === 'short') {
+          // 💇 단정한 숏컷 / 포니테일 앞머리
+          ctx.beginPath();
+          ctx.arc(0, -26, 39, Math.PI, 0); // 윗머리 덮개
+          ctx.lineTo(38, -25);
+          ctx.lineTo(25, -20); // 잔머리 깃
+          ctx.lineTo(10, -32); // 앞머리 갈래
+          ctx.lineTo(0, -20);
+          ctx.lineTo(-10, -32);
+          ctx.lineTo(-25, -20);
+          ctx.lineTo(-38, -25);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+        } else if (hairStyle === 'bob_cut') {
+          // 💇 귀여운 바가지/단발컷
+          ctx.beginPath();
+          ctx.arc(0, -24, 40, Math.PI * 1.05, Math.PI * 1.95);
+          ctx.lineTo(40, 5); // 단발 귀밑머리 길이 연장
+          ctx.lineTo(30, 2);
+          ctx.lineTo(15, -20); // 앞머리 뱅 라인
+          ctx.lineTo(-15, -20);
+          ctx.lineTo(-30, 2);
+          ctx.lineTo(-40, 5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+        } else if (hairStyle === 'long_wavy') {
+          // 💇 여신 웨이브 앞머리 레이어
+          ctx.beginPath();
+          ctx.arc(0, -26, 39, Math.PI, 0);
+          ctx.lineTo(38, -20);
+          ctx.lineTo(15, -15);
+          ctx.lineTo(0, -30); // 5:5 가르마
+          ctx.lineTo(-15, -15);
+          ctx.lineTo(-38, -20);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
 
         // 눈
         ctx.fillStyle = '#1e1104';
@@ -729,7 +1019,9 @@ function App() {
             speakingCharId === charA.id, 
             charA.name, 
             charA.gender === 'M', 
-            '#FF2E93'
+            '#FF2E93',
+            charA.hair_style || 'short',
+            charA.outfit_type || 'black_suit'
           );
 
           // 인형 2 그리기 (우측)
@@ -741,7 +1033,9 @@ function App() {
             speakingCharId === charB.id, 
             charB.name, 
             charB.gender === 'M', 
-            '#00F0FF'
+            '#00F0FF',
+            charB.hair_style || 'ponytail',
+            charB.outfit_type || 'blue_apron'
           );
 
         } else {
@@ -885,6 +1179,82 @@ function App() {
               onChange={(e) => setSeed(e.target.value)}
               placeholder="드라마의 시작이 될 한 줄 시드를 입력하세요..."
             />
+          </div>
+          
+          <div className="input-group" style={{ marginTop: '16px' }}>
+            <label className="input-label">📸 참고 캐릭터/레퍼런스 이미지 업로드 (선택)</label>
+            <div className="image-upload-wrapper" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px dashed rgba(255, 255, 255, 0.15)',
+              borderRadius: '12px',
+              padding: '16px',
+              alignItems: 'center',
+              cursor: 'pointer',
+              position: 'relative'
+            }}>
+              {uploadedImagePreview ? (
+                <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <img 
+                    src={uploadedImagePreview} 
+                    alt="Upload Preview" 
+                    style={{ maxHeight: '180px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.15)' }} 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setUploadedImage(null);
+                      setUploadedImagePreview(null);
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: '-10px',
+                      right: '-10px',
+                      background: '#FF2E93',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '24px',
+                      height: '24px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    ✕
+                  </button>
+                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>🤖 이미지 분석 완료! 드라마 캐릭터의 복장과 머리스타일이 실제 인형으로 매핑됩니다.</span>
+                </div>
+              ) : (
+                <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', width: '100%' }}>
+                  <span style={{ fontSize: '24px', marginBottom: '6px' }}>📁</span>
+                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-primary)' }}>이곳을 눌러 이미지를 업로드하세요</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>PNG, JPG 지원 | 이미지 속 인물의 의상과 머리스타일이 실제 드라마에 구현됩니다!</span>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    style={{ display: 'none' }} 
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setUploadedImage(reader.result);
+                          setUploadedImagePreview(reader.result);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }} 
+                  />
+                </label>
+              )}
+            </div>
           </div>
 
           {/* 🍿 추천 마라맛 시연 시나리오 카드 */}
