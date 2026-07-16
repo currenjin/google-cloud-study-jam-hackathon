@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import mockData from '../demo-assets/mock-scenes.json'
-import { generateStoryBible, generateNextScene, generateImage, generateHighlightVideo } from './gemini'
+import { generateStoryBible, generateNextScene, generateImage, generateHighlightVideo, getArcStage } from './gemini'
 
 const LOCAL_STORAGE_VERSION = 'v1'
 
@@ -107,7 +107,7 @@ function App() {
   const veoRunRef = useRef(0)
   const startBackgroundVeo = (sceneIndex, imagePrompt, imageUrl) => {
     const runId = veoRunRef.current
-    generateHighlightVideo(imagePrompt, imageUrl)
+    generateHighlightVideo(imagePrompt, imageUrl, getArcStage(sceneIndex + 1).camera)
       .then(videoUrl => {
         if (veoRunRef.current !== runId) return
         setScenes(prev => {
@@ -141,7 +141,7 @@ function App() {
       
       // Step 2: 첫 번째 씬 생성 ( user_twist 는 '이야기를 시작한다' 고정 )
       setLoadingText('첫 번째 씬 촬영 중... (씬 대본 작성)');
-      const sceneData = await generateNextScene(bibleData, '이야기를 시작한다', '이야기를 시작한다');
+      const sceneData = await generateNextScene(bibleData, '이야기를 시작한다', '이야기를 시작한다', 1);
       sceneData.user_twist = '이야기를 시작한다';
       sceneData.image_url = null;
       
@@ -228,7 +228,7 @@ function App() {
       
       // Step 1: 씬 생성
       setLoadingText('대본 수정 중... (씬 대본 작성)');
-      const nextSceneData = await generateNextScene(bible, currentStorySummary, userTwist);
+      const nextSceneData = await generateNextScene(bible, currentStorySummary, userTwist, scenes.length + 1);
       nextSceneData.user_twist = userTwist;
       nextSceneData.image_url = null;
 
@@ -330,6 +330,7 @@ function App() {
     let recorder;
     let stream;
     let active = true;
+    const loadedVideos = {}; // 씬 인덱스 → 프리로드된 Veo <video> 엘리먼트
 
     if (stage !== 'REELS') {
       return;
@@ -368,6 +369,32 @@ function App() {
       loadedList.forEach(item => {
         if (item) {
           loadedImages[item.idx] = item.img;
+        }
+      });
+
+      // 1-b. Veo 클립 프리로드 (video_url 있는 컷만) — muted/playsInline 없으면 자동재생이 차단됨
+      const videoPromises = scenes.map((scene, idx) => {
+        return new Promise((resolve) => {
+          const cut = scene.cuts && scene.cuts[0];
+          if (!cut || !cut.video_url) {
+            resolve(null);
+            return;
+          }
+          const video = document.createElement('video');
+          video.muted = true;
+          video.playsInline = true;
+          video.loop = true;
+          video.preload = 'auto';
+          video.onloadeddata = () => resolve({ idx, video });
+          video.onerror = () => resolve(null);
+          setTimeout(() => resolve(null), 8000); // 로드 행 방지 — 8초 내 준비 안 되면 이미지로 재생
+          video.src = cut.video_url;
+        });
+      });
+      const loadedVideoList = await Promise.all(videoPromises);
+      loadedVideoList.forEach(item => {
+        if (item) {
+          loadedVideos[item.idx] = item.video;
         }
       });
 
@@ -1194,7 +1221,10 @@ function App() {
         } catch (e) {}
       });
     };
-  }, [stage, scenes, bible]);
+    // 의존성은 stage만: 재생 도중 백그라운드 Veo 클립 도착(setScenes)으로
+    // 릴/녹화가 처음부터 재시작되는 버그 방지. 재생 시작 시점의 scenes 스냅샷을 사용한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage]);
 
   if (isLoading) {
     return (

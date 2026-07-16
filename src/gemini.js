@@ -101,7 +101,34 @@ export const generateStoryBible = async (userSeed, imageBase64, visualStyleType 
   return data;
 };
 
-export const generateNextScene = async (bible, storySummary, userTwist) => {
+// 기승전결 4단계 서사 가이드 — sceneNumber(1부터)에 따라 각본과 연출 톤을 지정
+const ARC_STAGES = [
+  {
+    name: '기 (설정)',
+    writing: '인물과 상황을 매력적으로 소개하고, 시청자를 붙잡는 훅으로 끝내라. 갈등의 씨앗을 심되 터뜨리지 마라.',
+    camera: 'wide establishing shot, warm soft lighting, slow build-up mood'
+  },
+  {
+    name: '승 (고조)',
+    writing: '갈등을 본격적으로 키워라. 인물 간 긴장이 오르고, 감정이 충돌하기 시작한다. 씬 끝에 불안한 예감을 남겨라.',
+    camera: 'medium two-shot, rising tension, moody contrast lighting'
+  },
+  {
+    name: '전 (반전/클라이맥스)',
+    writing: '이야기가 뒤집히는 순간이다. 반전이나 감정의 폭발을 정면으로 다뤄라. 대사는 짧고 강렬하게, 침묵의 순간도 활용하라.',
+    camera: 'dramatic close-up, high contrast low-key lighting, intense emotional peak'
+  },
+  {
+    name: '결 (회수와 여운)',
+    writing: '이야기를 완결지어라. 앞선 화들의 떡밥을 회수하고, 인물의 감정을 정리하며, 마지막 내레이션은 여운을 남기는 한 문장으로 끝내라.',
+    camera: 'slow cinematic pull-back, golden hour or twilight mood, lingering final frame'
+  }
+];
+
+export const getArcStage = (sceneNumber) => ARC_STAGES[Math.min(Math.max(sceneNumber, 1), 4) - 1];
+
+export const generateNextScene = async (bible, storySummary, userTwist, sceneNumber = 1) => {
+  const arc = getArcStage(sceneNumber);
   const visualStyle = bible.visual_style || '';
   const isReal = !visualStyle.toLowerCase().includes('mannequin') && 
                  !visualStyle.toLowerCase().includes('puppet') && 
@@ -120,6 +147,12 @@ export const generateNextScene = async (bible, storySummary, userTwist) => {
 `;
 
   const prompt = `너는 K-드라마 연출가다. Story Bible과 지금까지의 줄거리, 그리고 새 참가자가 입력한 "다음 전개 한 줄"을 받아 다음 씬을 만들어라.
+
+이번 화는 4화 구조의 ${sceneNumber}화, 서사 단계는 **${arc.name}**이다.
+- 각본 지침: ${arc.writing}
+- image_prompt의 샷/조명도 이 단계에 맞춰라: ${arc.camera}
+${sceneNumber >= 4 ? '- 이번 화가 마지막 화다. 반드시 이야기를 완결지어라.' : ''}
+
 규칙:
 - 참가자의 전개를 반드시 반영하되, tone과 setting을 벗어나지 않는다.
 - 새 전개가 기존 Bible에 없는 인물을 요구할 때만 new_characters에 1명을 추가한다. 아니면 빈 배열을 반환한다.
@@ -224,7 +257,7 @@ export const generateImage = async (imagePrompt) => {
   return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
 };
 
-export const generateHighlightVideo = async (imagePrompt, imageBase64) => {
+export const generateHighlightVideo = async (imagePrompt, imageBase64, cameraDirective = 'slow cinematic push-in, dramatic mood') => {
   let cleanBase64 = imageBase64;
   if (imageBase64 && imageBase64.includes(';base64,')) {
     cleanBase64 = imageBase64.split(';base64,')[1];
@@ -233,7 +266,7 @@ export const generateHighlightVideo = async (imagePrompt, imageBase64) => {
   const runGeneration = async (aspectRatio) => {
     let operation = await ai.models.generateVideos({
       model: 'veo-3.1-fast-generate-preview',
-      prompt: imagePrompt + " slow cinematic push-in, dramatic mood",
+      prompt: imagePrompt + " " + cameraDirective,
       image: { imageBytes: cleanBase64, mimeType: 'image/jpeg' },
       config: {
         aspectRatio: aspectRatio
