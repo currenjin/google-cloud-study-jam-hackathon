@@ -309,6 +309,37 @@ function App() {
             />
           </div>
 
+          {/* 🍿 추천 마라맛 시연 시나리오 카드 */}
+          <div className="preset-seeds">
+            <span className="preset-label">🔥 추천 막장 드라마 시나리오</span>
+            <div className="preset-cards">
+              <button 
+                type="button" 
+                className="preset-card" 
+                onClick={() => setSeed('기억상실증에 걸린 재벌 3세 목각인형과 사실은 출생의 비밀을 숨긴 편의점 알바인형')}
+              >
+                <span className="preset-emoji">☕</span>
+                <span className="preset-text">막장 오피스 로맨스</span>
+              </button>
+              <button 
+                type="button" 
+                className="preset-card" 
+                onClick={() => setSeed('외계인 목각인형 비밀요원들이 지구를 정복하기 위해 주막집을 개업하며 벌어지는 일')}
+              >
+                <span className="preset-emoji">🛸</span>
+                <span className="preset-text">SF 개그 요리액션</span>
+              </button>
+              <button 
+                type="button" 
+                className="preset-card" 
+                onClick={() => setSeed('조선시대 주막집의 목각 인형으로 회귀한 천재 요리사의 화려한 복수극')}
+              >
+                <span className="preset-emoji">⚔️</span>
+                <span className="preset-text">퓨전 사극 회귀물</span>
+              </button>
+            </div>
+          </div>
+
           <div className="button-group">
             <button 
               type="button" 
@@ -402,6 +433,19 @@ function App() {
 
             {/* 대본 및 스토리 연출 텍스트 리스트 */}
             <div className="script-container">
+              {/* 👥 출연 인물 프로필 태그 */}
+              <div className="characters-profile-row">
+                <span className="profile-label">👥 인물 관계도</span>
+                <div className="profile-tags">
+                  {bible.characters.map((c) => (
+                    <div key={c.id} className="profile-tag">
+                      <span className="profile-tag-name">{c.name}</span>
+                      <span className="profile-tag-desc">{c.marker} ({c.personality})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="script-scene-title">{scenes[currentSceneIndex].scene_title}</div>
               <p className="script-narration">{scenes[currentSceneIndex].narration}</p>
               
@@ -422,6 +466,41 @@ function App() {
           {/* 컨트롤 및 릴레이 입력 영역 */}
           <footer className="scene-footer">
             <div className="relay-input-area">
+              {/* 🤫 K-드라마 꿀팁 연출 지시카드 */}
+              <div className="twist-cheat-sheet">
+                <span className="cheat-label">💡 추천 전개 치트키:</span>
+                <div className="cheat-items">
+                  <button 
+                    type="button" 
+                    className="cheat-item" 
+                    onClick={() => setUserTwist('사실 두 사람의 부모가 예전에 엄청난 은원 관계로 얽힌 남매였다는 사실이 밝혀짐!')}
+                  >
+                    🤫 출생의 비밀
+                  </button>
+                  <button 
+                    type="button" 
+                    className="cheat-item" 
+                    onClick={() => setUserTwist('인형이 뒷걸음질 치다 바나나 껍질을 밟고 머리를 다쳐 갑자기 기억상실증에 걸려버림!')}
+                  >
+                    🍌 기억상실증
+                  </button>
+                  <button 
+                    type="button" 
+                    className="cheat-item" 
+                    onClick={() => setUserTwist('하늘에서 전설의 황금 레이저가 발사되며 인형에게 특별한 마법 초능력이 각성됨!')}
+                  >
+                    ⚡ 초능력 각성
+                  </button>
+                  <button 
+                    type="button" 
+                    className="cheat-item" 
+                    onClick={() => setUserTwist('사실 이 모든 일들은 밤중에 졸고 있던 인형가게 주인의 엉뚱한 꿈이었음이 밝혀짐!')}
+                  >
+                    💤 개꿈 아시발꿈
+                  </button>
+                </div>
+              </div>
+
               <textarea 
                 className="relay-textarea"
                 placeholder="인형들의 다음 행보를 한 줄로 개입하세요..."
