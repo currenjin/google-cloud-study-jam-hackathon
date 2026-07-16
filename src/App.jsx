@@ -345,6 +345,242 @@ function App() {
       const totalDuration = scenes.length * 3500; // 화수당 3.5초
       let startTime = null;
 
+      // 🌟 실사풍 목각인형 마리오네트 관절 드로잉 유틸리티
+      const drawPuppet = (x, y, pose, scale, isSpeaking, name, isMale, colorTheme) => {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+
+        let elapsedOffset = Date.now();
+        let breathY = Math.sin(elapsedOffset * 0.003) * 3;
+        let breathAngle = Math.sin(elapsedOffset * 0.002) * 0.02;
+
+        let headRot = breathAngle;
+        let jawY = 0;
+        let leftArmAngle = 0.2;
+        let rightArmAngle = -0.2;
+        let leftLegAngle = 0;
+        let rightLegAngle = 0;
+        let bodyY = breathY;
+        let rotation = 0;
+
+        // 대본 전개에 따른 움직임 및 포즈 가중치 산출
+        if (pose === 'talking') {
+          headRot += Math.sin(elapsedOffset * 0.015) * 0.08;
+          jawY = Math.abs(Math.sin(elapsedOffset * 0.022)) * 14; // 실시간 턱 움직임 (말하기 싱크)
+          // 말할 때 팔을 위아래로 힘차게 지으며 대화 표현
+          rightArmAngle = -1.2 + Math.sin(elapsedOffset * 0.012) * 0.4;
+          leftArmAngle = 0.3 + Math.cos(elapsedOffset * 0.01) * 0.2;
+        } else if (pose === 'walking') {
+          bodyY += Math.abs(Math.sin(elapsedOffset * 0.01)) * 12;
+          leftLegAngle = Math.sin(elapsedOffset * 0.01) * 0.6;
+          rightLegAngle = -Math.sin(elapsedOffset * 0.01) * 0.6;
+          leftArmAngle = -Math.sin(elapsedOffset * 0.01) * 0.5;
+          rightArmAngle = Math.sin(elapsedOffset * 0.01) * 0.5;
+        } else if (pose === 'shocked') {
+          bodyY += (Math.random() - 0.5) * 6; // 부들부들 떠는 연출
+          headRot = -0.15 + (Math.random() - 0.5) * 0.05;
+          leftArmAngle = -2.2 + Math.sin(elapsedOffset * 0.05) * 0.3; // 손을 위로 들고 바르르 떨기
+          rightArmAngle = 2.2 + Math.cos(elapsedOffset * 0.05) * 0.3;
+        } else if (pose === 'sad') {
+          headRot = 0.25; // 고개 떨굼
+          leftArmAngle = -1.5; // 손으로 얼굴 가리기
+          rightArmAngle = -1.6;
+          bodyY += breathY * 1.5;
+        } else if (pose === 'fainted') {
+          rotation = -Math.PI / 2; // 쓰러짐
+          bodyY = 180;
+          leftArmAngle = 1.0;
+          rightArmAngle = -1.0;
+          leftLegAngle = 0.3;
+          rightLegAngle = -0.3;
+        }
+
+        // 전체 회전 적용 (쓰러질 때 등)
+        ctx.rotate(rotation);
+        ctx.translate(0, bodyY);
+
+        const drawSegment = (width, height, radius, strokeColor, startCol, endColor) => {
+          const grad = ctx.createLinearGradient(-width/2, 0, width/2, 0);
+          grad.addColorStop(0, startCol);
+          grad.addColorStop(0.4, '#eec891');
+          grad.addColorStop(1, endColor);
+          ctx.fillStyle = grad;
+          ctx.strokeStyle = strokeColor;
+          ctx.lineWidth = 1.5;
+          
+          ctx.beginPath();
+          ctx.roundRect(-width/2, 0, width, height, radius);
+          ctx.fill();
+          ctx.stroke();
+        };
+
+        const drawJoint = (cx, cy, radius) => {
+          ctx.beginPath();
+          const jGrad = ctx.createRadialGradient(cx, cy, 1, cx, cy, radius);
+          jGrad.addColorStop(0, '#d1985a');
+          jGrad.addColorStop(1, '#613b1a');
+          ctx.fillStyle = jGrad;
+          ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        };
+
+        // 1. 다리 그리기 (몸통 뒤에 위치하도록 먼저 렌더링)
+        // 왼다리
+        ctx.save();
+        ctx.translate(-24, 75);
+        ctx.rotate(leftLegAngle);
+        drawSegment(14, 50, 6, '#422812', '#b88555', '#6b431e'); // 허벅지
+        drawJoint(0, 50, 6);
+        ctx.translate(0, 50);
+        ctx.rotate(0.1);
+        drawSegment(12, 50, 5, '#422812', '#b88555', '#6b431e'); // 종아리
+        ctx.restore();
+
+        // 오른다리
+        ctx.save();
+        ctx.translate(24, 75);
+        ctx.rotate(rightLegAngle);
+        drawSegment(14, 50, 6, '#422812', '#b88555', '#6b431e');
+        drawJoint(0, 50, 6);
+        ctx.translate(0, 50);
+        ctx.rotate(-0.1);
+        drawSegment(12, 50, 5, '#422812', '#b88555', '#6b431e');
+        ctx.restore();
+
+        // 2. 몸통 (Body) - 그라데이션 목재 질감
+        ctx.save();
+        const bodyGrad = ctx.createLinearGradient(-35, 0, 35, 0);
+        bodyGrad.addColorStop(0, '#754b22');
+        bodyGrad.addColorStop(0.3, '#d39e62');
+        bodyGrad.addColorStop(0.7, '#fcd6a1');
+        bodyGrad.addColorStop(1, '#825327');
+        ctx.fillStyle = bodyGrad;
+        ctx.strokeStyle = '#422812';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-35, -70);
+        ctx.bezierCurveTo(-38, -20, -32, 40, -28, 75);
+        ctx.lineTo(28, 75);
+        ctx.bezierCurveTo(32, 40, 38, -20, 35, -70);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 가슴팍의 캐릭터 전용 네온 마커 엠블럼 데코레이션
+        ctx.fillStyle = colorTheme || '#FF2E93';
+        ctx.shadowColor = colorTheme || '#FF2E93';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(0, -30, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+
+        // 3. 목 관절 및 머리
+        ctx.save();
+        ctx.translate(0, -70);
+        ctx.rotate(headRot);
+        // 목 peg
+        drawSegment(12, -20, 3, '#422812', '#a07040', '#543618');
+        // 머리 - 둥근 3D 구체 느낌 구형 렌더링
+        ctx.translate(0, -20);
+        const headGrad = ctx.createRadialGradient(-10, -25, 5, 0, -25, 50);
+        headGrad.addColorStop(0, '#fce4be');
+        headGrad.addColorStop(0.6, '#cc965e');
+        headGrad.addColorStop(1, '#7a4b24');
+        ctx.fillStyle = headGrad;
+        ctx.strokeStyle = '#422812';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(0, -25, 38, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 눈
+        ctx.fillStyle = '#1e1104';
+        ctx.beginPath();
+        ctx.arc(-14, -30, 4, 0, Math.PI * 2); // 왼눈
+        ctx.arc(14, -30, 4, 0, Math.PI * 2);  // 오른눈
+        ctx.fill();
+        
+        ctx.strokeStyle = '#7a4b24';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(-14, -30, 7, 0, Math.PI * 2);
+        ctx.arc(14, -30, 7, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 턱관절 (Jaw) - 대사가 있는 경우 아래위로 열림
+        ctx.save();
+        ctx.translate(0, jawY);
+        const jawGrad = ctx.createLinearGradient(-18, 0, 18, 0);
+        jawGrad.addColorStop(0, '#9e6d3f');
+        jawGrad.addColorStop(1, '#5e3d1c');
+        ctx.fillStyle = jawGrad;
+        ctx.strokeStyle = '#422812';
+        ctx.beginPath();
+        ctx.roundRect(-20, -10, 40, 12, 3);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        if (isSpeaking) {
+          ctx.save();
+          ctx.shadowColor = '#FF2E93';
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = '#FF2E93';
+          ctx.beginPath();
+          ctx.moveTo(0, -78);
+          ctx.lineTo(-8, -90);
+          ctx.lineTo(8, -90);
+          ctx.closePath();
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.restore();
+        }
+        ctx.restore();
+
+        // 4. 팔 그리기 (몸통 앞으로 렌더링)
+        // 왼팔
+        ctx.save();
+        ctx.translate(-40, -60);
+        ctx.rotate(leftArmAngle);
+        drawJoint(0, 0, 7);
+        drawSegment(12, 45, 5, '#422812', '#d6a06b', '#734620'); // 상완
+        drawJoint(0, 45, 5);
+        ctx.translate(0, 45);
+        ctx.rotate(0.2);
+        drawSegment(10, 40, 4, '#422812', '#d6a06b', '#734620'); // 하완 및 손
+        ctx.restore();
+
+        // 오른팔
+        ctx.save();
+        ctx.translate(40, -60);
+        ctx.rotate(rightArmAngle);
+        drawJoint(0, 0, 7);
+        drawSegment(12, 45, 5, '#422812', '#d6a06b', '#734620'); // 상완
+        drawJoint(0, 45, 5);
+        ctx.translate(0, 45);
+        ctx.rotate(-0.2);
+        drawSegment(10, 40, 4, '#422812', '#d6a06b', '#734620'); // 하완 및 손
+        ctx.restore();
+
+        // 5. 발판 및 이름 장식
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(-60, 85, 120, 20);
+        ctx.strokeStyle = '#422812';
+        ctx.strokeRect(-60, 85, 120, 20);
+        
+        ctx.fillStyle = '#FFF';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(name || '목각인형', 0, 99);
+
+        ctx.restore();
+      };
+
       const wrapText = (text, x, y, maxWidth, lineHeight) => {
         const words = text.split(' ');
         let line = '';
@@ -393,7 +629,7 @@ function App() {
         // 캔버스 초기화
         ctx.clearRect(0, 0, 720, 1280);
 
-        // 1. 이미지 그리기 (Ken Burns 슬로우 줌 연출)
+        // 1. 배경 이미지 그리기
         if (loadedImages[currentSceneIdx]) {
           const img = loadedImages[currentSceneIdx];
           
@@ -402,12 +638,11 @@ function App() {
           let dx = 0;
           let dy = 0;
 
-          // 🔥 Veo 모드 활성화 시 역동적인 카메라 모션 추가 (미세 좌우 드래프트 및 입체 패닝)
           if (isVeoMode) {
             scale = 1.05 + Math.sin(progressPct * Math.PI) * 0.08; // 부드러운 전후 3D 수축/이완 무브
             rotation = Math.sin(progressPct * Math.PI) * 0.015;  // 흔들리는 3D 핸드헬드 기법 연출
-            dx = Math.cos(progressPct * Math.PI * 2) * 15;       // 미세 좌우 달링(Dalling) 효과
-            dy = Math.sin(progressPct * Math.PI * 2) * 8;        // 미세 상하 틸팅(Tilting) 효과
+            dx = Math.cos(progressPct * Math.PI * 2) * 15;       // 미세 좌우 달링 효과
+            dy = Math.sin(progressPct * Math.PI * 2) * 8;        // 미세 상하 틸팅 효과
           }
 
           const w = 720 * scale;
@@ -418,6 +653,10 @@ function App() {
           ctx.rotate(rotation);
           ctx.drawImage(img, -w / 2, -h / 2, w, h);
           ctx.restore();
+
+          // 무대 느낌의 암전 처리 오버레이
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+          ctx.fillRect(0, 0, 720, 1280);
 
           // 🔥 Veo 모드 시네마틱 입체 라이트 파티클 효과 그리기
           if (isVeoMode) {
@@ -438,6 +677,72 @@ function App() {
             }
             ctx.shadowBlur = 0; // 그림자 초기화
           }
+
+          // 2. 실사풍 목각인형 마리오네트 액션 극장 엔진 작동! (대본 전개에 반응)
+          let charA = bible.characters[0] || { id: 'char1', name: '인물A', gender: 'M' };
+          let charB = bible.characters[1] || { id: 'char2', name: '인물B', gender: 'F' };
+
+          let activeDialogue = scene.dialogues && scene.dialogues[0];
+          let speakingCharId = activeDialogue ? activeDialogue.character_id : null;
+
+          // 대사 정보 및 시나리오 텍스트 키워드 기반으로 포즈 결정
+          let poseA = 'idle';
+          let poseB = 'idle';
+
+          if (speakingCharId === charA.id) {
+            poseA = 'talking';
+          } else if (speakingCharId === charB.id) {
+            poseB = 'talking';
+          } else {
+            // 대화가 없을 때는 지문의 극적 상황 분석
+            let narration = scene.narration || '';
+            if (narration.includes('걸어가') || narration.includes('도망') || narration.includes('가다')) {
+              poseA = 'walking';
+              poseB = 'walking';
+            } else if (narration.includes('충격') || narration.includes('깜짝') || narration.includes('비명') || narration.includes('경악') || narration.includes('놀라')) {
+              poseA = 'shocked';
+              poseB = 'shocked';
+            } else if (narration.includes('슬퍼') || narration.includes('우는') || narration.includes('절망')) {
+              poseA = 'sad';
+              poseB = 'sad';
+            }
+          }
+
+          // 만약 K-드라마 치트키가 이 장면에 연관되어 있다면 강제 포즈 셋팅
+          let twistText = scene.user_twist || '';
+          if (twistText.includes('기억상실')) {
+            if (speakingCharId === charA.id) poseB = 'shocked';
+            else poseA = 'fainted'; // 쓰러짐!
+          } else if (twistText.includes('출생')) {
+            poseA = 'shocked';
+            poseB = 'shocked';
+          } else if (twistText.includes('초능력')) {
+            poseA = 'shocked';
+          }
+
+          // 인형 1 그리기 (좌측)
+          drawPuppet(
+            200, 
+            910, 
+            poseA, 
+            1.4, 
+            speakingCharId === charA.id, 
+            charA.name, 
+            charA.gender === 'M', 
+            '#FF2E93'
+          );
+
+          // 인형 2 그리기 (우측)
+          drawPuppet(
+            520, 
+            910, 
+            poseB, 
+            1.4, 
+            speakingCharId === charB.id, 
+            charB.name, 
+            charB.gender === 'M', 
+            '#00F0FF'
+          );
 
         } else {
           // 폴백 단색 배경
