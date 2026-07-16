@@ -1127,3 +1127,14 @@ input:checked + .slider:before {
   .poster-title, .btn-primary, .overlay-icon, .pass-content h2,
   .loading-text, .compiling-text, .ending-title, .ending-logo { animation: none; }
 }
+
+/* 타이틀 잘림 수정: 시선 높이 확보 + 글리프/그라데이션 클리핑 방지 */
+.poster-wrapper { margin-top: clamp(16px, 6vh, 60px); overflow: visible; }
+.poster-title {
+  display: inline-block;
+  line-height: 1.25;
+  padding: 4px 12px;
+  overflow: visible;
+  letter-spacing: -1px;
+  font-family: 'Noto Sans KR', 'Outfit', sans-serif;
+}
