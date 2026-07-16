@@ -84,7 +84,7 @@ export const generateStoryBible = async (userSeed, imageBase64, visualStyleType 
   }
 
   const call = ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3-flash-preview', // 검증됨: 이 해커톤 계정에서 2.5/1.5 세대는 404 ("no longer available to new users")
     contents: contents,
     config: {
       responseMimeType: 'application/json',
@@ -178,7 +178,7 @@ Story Bible: ${JSON.stringify(bible)}
   };
 
   const call = ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3-flash-preview', // 검증됨: 이 해커톤 계정에서 2.5/1.5 세대는 404 ("no longer available to new users")
     contents: prompt,
     config: {
       responseMimeType: 'application/json',
@@ -204,21 +204,68 @@ Story Bible: ${JSON.stringify(bible)}
 };
 
 export const generateImage = async (imagePrompt) => {
-  const call = ai.models.generateImages({
-    model: 'imagen-3.0-generate-002',
-    prompt: imagePrompt,
+  // 검증됨: imagen-3.0/4.0은 이 계정에서 404, gemini-3.1-flash-image는 REST로 9:16 생성 확인
+  const call = ai.models.generateContent({
+    model: 'gemini-3.1-flash-image',
+    contents: imagePrompt,
     config: {
-      numberOfImages: 1,
-      aspectRatio: '9:16',
-      outputMimeType: 'image/jpeg'
+      responseModalities: ['IMAGE'],
+      imageConfig: { aspectRatio: '9:16' }
     }
   });
 
-  const response = await withTimeout(call, 20000);
-  const image = response.generatedImages[0];
-  if (!image || !image.image || !image.image.imageBytes) {
+  const response = await withTimeout(call, 30000);
+  const parts = response.candidates?.[0]?.content?.parts || [];
+  const imgPart = parts.find(p => p.inlineData && p.inlineData.mimeType?.startsWith('image/'));
+  if (!imgPart) {
     throw new Error('IMAGE_GEN_FAILED');
   }
 
-  return `data:image/jpeg;base64,${image.image.imageBytes}`;
+  return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
+};
+
+export const generateHighlightVideo = async (imagePrompt, imageBase64) => {
+  let cleanBase64 = imageBase64;
+  if (imageBase64 && imageBase64.includes(';base64,')) {
+    cleanBase64 = imageBase64.split(';base64,')[1];
+  }
+
+  const runGeneration = async (aspectRatio) => {
+    let operation = await ai.models.generateVideos({
+      model: 'veo-3.1-fast-generate-preview',
+      prompt: imagePrompt + " slow cinematic push-in, dramatic mood",
+      image: { imageBytes: cleanBase64, mimeType: 'image/jpeg' },
+      config: {
+        aspectRatio: aspectRatio
+      }
+    });
+
+    const startTime = Date.now();
+    const timeoutLimit = 240 * 1000; // 4 minutes
+
+    while (!operation.done) {
+      if (Date.now() - startTime > timeoutLimit) {
+        throw new Error('VEO_GENERATION_TIMEOUT');
+      }
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      operation = await ai.operations.getVideosOperation({ operation });
+    }
+
+    if (operation.response && operation.response.generatedVideos && operation.response.generatedVideos[0]) {
+      const videoUri = operation.response.generatedVideos[0].video.uri;
+      const finalUrl = `${videoUri}&key=${apiKey}`;
+      const res = await fetch(finalUrl);
+      const blob = await res.blob();
+      return URL.createObjectURL(blob);
+    } else {
+      throw new Error('VEO_GENERATION_FAILED');
+    }
+  };
+
+  try {
+    return await runGeneration('9:16');
+  } catch (error) {
+    console.warn('Veo 9:16 failed, retrying with 16:9...', error);
+    return await runGeneration('16:9');
+  }
 };
