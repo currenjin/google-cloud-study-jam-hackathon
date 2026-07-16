@@ -288,7 +288,8 @@ function App() {
         setVideoCompilationText('🤖 [2/4] Veo Engine: 텍스트 및 레퍼런스 이미지 물리 벡터 연산 분석...');
         await new Promise(resolve => setTimeout(resolve, 800));
         if (!active) return;
-        setVideoCompilationText('🎨 [3/4] Rendering: 광학 흐름(Optical Flow) 및 목각인형 3D 모션 프레임 합성...');
+        const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
+        setVideoCompilationText(`🎨 [3/4] Rendering: 광학 흐름(Optical Flow) 및 ${isRealStyle ? '실사 배우 시네마틱 비디오' : '목각인형 3D 모션'} 프레임 합성...`);
         await new Promise(resolve => setTimeout(resolve, 800));
         if (!active) return;
         setVideoCompilationText('🔒 [4/4] Security: Google SynthID 디지털 불포화 워터마크 주입 완료!');
@@ -1308,13 +1309,21 @@ function App() {
                   >
                     ✕
                   </button>
-                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>🤖 이미지 분석 완료! 드라마 캐릭터의 복장과 머리스타일이 실제 인형으로 매핑됩니다.</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>{
+                    visualStyleType === 'real'
+                      ? '🤖 이미지 분석 완료! 드라마 주인공 배우의 패션, 복장 및 헤어스타일 정보가 완벽하게 실사풍 드라마에 직접 매핑됩니다.'
+                      : '🤖 이미지 분석 완료! 드라마 캐릭터의 복장과 머리스타일이 실제 인형으로 매핑됩니다.'
+                  }</span>
                 </div>
               ) : (
                 <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', width: '100%' }}>
                   <span style={{ fontSize: '24px', marginBottom: '6px' }}>📁</span>
                   <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-primary)' }}>이곳을 눌러 이미지를 업로드하세요</span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>PNG, JPG 지원 | 이미지 속 인물의 의상과 머리스타일이 실제 드라마에 구현됩니다!</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>{
+                    visualStyleType === 'real'
+                      ? 'PNG, JPG 지원 | 이미지 속 주인공 배우의 패션, 복장 및 비주얼이 실사 드라마 화풍에 연동되어 전개됩니다!'
+                      : 'PNG, JPG 지원 | 이미지 속 인물의 의상과 머리스타일이 실제 드라마 인형으로 정교하게 구현됩니다!'
+                  }</span>
                   <input 
                     type="file" 
                     accept="image/*" 
@@ -1532,21 +1541,30 @@ function App() {
                   <button 
                     type="button" 
                     className="cheat-item" 
-                    onClick={() => setUserTwist('인형이 뒷걸음질 치다 바나나 껍질을 밟고 머리를 다쳐 갑자기 기억상실증에 걸려버림!')}
+                    onClick={() => {
+                      const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
+                      setUserTwist(`${isRealStyle ? '주인공' : '인형'}이 뒷걸음질 치다 바나나 껍질을 밟고 머리를 다쳐 갑자기 기억상실증에 걸려버림!`);
+                    }}
                   >
                     🍌 기억상실증
                   </button>
                   <button 
                     type="button" 
                     className="cheat-item" 
-                    onClick={() => setUserTwist('하늘에서 전설의 황금 레이저가 발사되며 인형에게 특별한 마법 초능력이 각성됨!')}
+                    onClick={() => {
+                      const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
+                      setUserTwist(`하늘에서 전설의 황금 레이저가 발사되며 ${isRealStyle ? '주인공' : '인형'}에게 특별한 마법 초능력이 각성됨!`);
+                    }}
                   >
                     ⚡ 초능력 각성
                   </button>
                   <button 
                     type="button" 
                     className="cheat-item" 
-                    onClick={() => setUserTwist('사실 이 모든 일들은 밤중에 졸고 있던 인형가게 주인의 엉뚱한 꿈이었음이 밝혀짐!')}
+                    onClick={() => {
+                      const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
+                      setUserTwist(`사실 이 모든 일들은 밤중에 졸고 있던 ${isRealStyle ? '드라마 작가' : '인형가게 주인'}의 엉뚱한 꿈이었음이 밝혀짐!`);
+                    }}
                   >
                     💤 개꿈 아시발꿈
                   </button>
@@ -1555,7 +1573,7 @@ function App() {
 
               <textarea 
                 className="relay-textarea"
-                placeholder="인형들의 다음 행보를 한 줄로 개입하세요..."
+                placeholder={bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic')) ? "주인공들의 다음 행보를 한 줄로 개입하세요..." : "인형들의 다음 행보를 한 줄로 개입하세요..."}
                 value={userTwist}
                 onChange={(e) => setUserTwist(e.target.value)}
               />
