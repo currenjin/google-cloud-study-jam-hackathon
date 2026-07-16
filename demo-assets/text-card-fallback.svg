@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <defs>
+    <radialGradient id="fade" cx="50%" cy="45%" r="75%">
+      <stop offset="0%" stop-color="#241f18"/>
+      <stop offset="100%" stop-color="#0b0a08"/>
+    </radialGradient>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#fade)"/>
+  <!-- 이미지 생성 실패 시 이 컷으로 대체: 내레이션 타이포 카드 -->
+  <text x="540" y="820" font-family="serif" font-size="72" fill="#e8dcc8" text-anchor="middle">그날 밤,</text>
+  <text x="540" y="960" font-family="serif" font-size="72" fill="#e8dcc8" text-anchor="middle">아무도 몰랐다.</text>
+  <text x="540" y="1120" font-family="serif" font-size="56" fill="#f5d76e" text-anchor="middle">인형에게도 비밀이 있다는 걸.</text>
+  <line x1="440" y1="1220" x2="640" y2="1220" stroke="#8a7358" stroke-width="4"/>
+</svg>

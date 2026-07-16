@@ -18,6 +18,9 @@ AGENTS.md와 docs/03-prompts.md를 읽고 시작해.
 M1을 구현해줘: Vite + React 프로젝트를 이 폴더에 스캐폴드하고,
 다음 한 사이클이 동작하게 만들어.
 
+먼저 demo-assets/mock-scenes.json의 목업 데이터로 화면 렌더링부터 완성한 뒤,
+실제 Gemini 호출로 교체해 (UI 확인을 API 대기 없이 하기 위해).
+
 1. 시드 입력 화면: 텍스트 입력 + "드라마 시작" 버튼
 2. 버튼 클릭 → docs/03-prompts.md의 "프롬프트 1"로 Story Bible(JSON) 생성
 3. 바이블 생성 직후 "프롬프트 2"로 첫 씬 생성 (새 전개 입력은 "이야기를 시작한다"로 고정)

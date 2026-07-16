@@ -1,0 +1,68 @@
+{
+  "_comment": "UI 개발용 목업 데이터. docs/03-prompts.md의 스키마와 동일한 형태. API 연동 전 UI 작업과 폴백 테스트에 사용.",
+  "bible": {
+    "title": "위약금은 사랑입니다",
+    "logline": "재벌집 막내인형과 편의점 알바인형의 계약연애",
+    "tone": "과장된 막장 로맨스, 진지한 연출과 목각인형의 갭 코미디",
+    "visual_style": "wooden artist mannequin figures on a miniature diorama stage set, soft studio lighting, shallow depth of field, cinematic color grading, 9:16 vertical",
+    "characters": [
+      {
+        "id": "mina",
+        "name": "미나",
+        "marker": "빨간 목도리를 두른 인형",
+        "personality": "집착이 심한 재벌 3세",
+        "speech_style": "존댓말이지만 서늘함"
+      },
+      {
+        "id": "jun",
+        "name": "준",
+        "marker": "파란 앞치마를 입은 인형",
+        "personality": "무던한 편의점 알바, 사실은 비밀이 많음",
+        "speech_style": "무심한 반말"
+      }
+    ],
+    "setting": "2026년 서울, 한강뷰 펜트하우스와 24시 편의점",
+    "story_summary": ""
+  },
+  "scenes": [
+    {
+      "scene_title": "1화. 계약서에 도장 찍던 날",
+      "narration": "한강이 보이는 펜트하우스, 계약서 한 장이 두 인형 사이에 놓였다.",
+      "dialogues": [
+        { "character_id": "mina", "line": "계약 기간은 3개월." },
+        { "character_id": "mina", "line": "사랑에 빠지면 위약금이에요." },
+        { "character_id": "jun", "line": "...시급은?" }
+      ],
+      "cuts": [{ "image": "cut-01-contract.svg" }],
+      "user_twist": "이야기를 시작한다"
+    },
+    {
+      "scene_title": "2화. 지워진 계약",
+      "narration": "그날, 3개월의 기억이 사라졌다.",
+      "dialogues": [
+        { "character_id": "mina", "line": "당신... 누구시죠?" },
+        { "character_id": "jun", "line": "장난치지 마. 위약금 얘기부터 해." }
+      ],
+      "cuts": [{ "image": "cut-02-amnesia.svg" }],
+      "user_twist": "갑자기 막내인형이 기억상실에 걸린다"
+    },
+    {
+      "scene_title": "3화. 두 개의 앞치마",
+      "narration": "같은 앞치마가, 둘이었다.",
+      "dialogues": [
+        { "character_id": "jun", "line": "쟤 뭐야." },
+        { "character_id": "jun2", "line": "계약자는 나야." }
+      ],
+      "cuts": [{ "image": "cut-03-twin.svg" }],
+      "user_twist": "알바인형의 쌍둥이가 나타나 자기가 진짜 계약자라고 주장한다"
+    },
+    {
+      "scene_title": "4화. 목격자",
+      "narration": "이 모든 것은, 편의점 CCTV에 찍히고 있었다.",
+      "dialogues": [],
+      "cuts": [{ "image": "cut-04-cctv.svg" }],
+      "user_twist": "사실 이 모든 것은 편의점 CCTV에 찍히고 있었다"
+    }
+  ],
+  "fallback_card": "text-card-fallback.svg"
+}
