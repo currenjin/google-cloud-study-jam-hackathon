@@ -10,7 +10,12 @@ const withTimeout = (promise, ms = 15000) => {
   ]);
 };
 
-export const generateStoryBible = async (userSeed, imageBase64) => {
+export const generateStoryBible = async (userSeed, imageBase64, visualStyleType = 'real') => {
+  const isReal = visualStyleType === 'real';
+  const visualStyleStr = isReal
+    ? "photorealistic live-action cinematic Korean drama scene, real actors with emotional expressions, highly detailed faces, stylish clothing, moody studio lighting, shallow depth of field, professional cinematography, 9:16 vertical, photorealistic, 8k"
+    : "wooden artist mannequin figures on a miniature diorama stage set, soft studio lighting, shallow depth of field, cinematic color grading, 9:16 vertical";
+
   const prompt = `너는 숏폼 드라마 기획자다. 사용자가 준 시드(텍스트)와 업로드된 참고 이미지(있는 경우)를 바탕으로 아래 JSON 스키마에 맞는 드라마 설정(Story Bible)을 만들어라.
 중요 규칙:
 1. 만약 참고 이미지가 제공되었다면, 이미지에 등장하는 핵심 인물들의 외모, 성별, 연령, 옷차림을 철저히 분석하여 인물의 성격(personality)과 외모 속성을 정확히 대조 매핑하라.
@@ -18,8 +23,10 @@ export const generateStoryBible = async (userSeed, imageBase64) => {
    - gender: "M" 또는 "F"
    - hair_style: 'spiky' (남자 스포티/짧은머리), 'ponytail' (포니테일), 'long_wavy' (긴 웨이브머리), 'bob_cut' (단발머리), 'short' (기본 깔끔한 숏컷) 중 하나를 선택하라.
    - outfit_type: 'black_suit' (정장/오피스룩), 'blue_apron' (앞치마/캐주얼 알바), 'red_dress' (럭셔리 드레스), 'white_coat' (의사 가운/연구원), 'casual' (캐주얼 후드티셔츠) 중 하나를 선택하라.
-3. visual_style 필드는 다음 문구를 글자 그대로 유지한다: "wooden artist mannequin figures on a miniature diorama stage set, soft studio lighting, shallow depth of field, cinematic color grading, 9:16 vertical"
-4. JSON만 출력한다.
+3. visual_style 필드는 다음 문구를 글자 그대로 유지한다: "${visualStyleStr}"
+4. 각 등장인물의 marker 속성은 다음과 같이 지정한다:
+   ${isReal ? `- 실사풍(visualStyleType이 'real')이므로, 등장인물의 marker는 인형에 매핑되는 단순한 단색 대신, 실제 사람이 입을법한 세련된 의상 및 패션 액세서리(예: "세련된 블루 셔츠와 은빛 안경", "노란색 코트와 붉은 목도리", "체크무늬 자켓과 검은 깃 셔츠")로 한국어 구문 형태의 영어 키워드(예: "wearing a stylish blue shirt and silver glasses" 또는 "wearing a yellow coat and red scarf")로 자세하게 정의하라.` : `- 목각인형 테마이므로, 인형 구분을 위한 특징적인 마커 의상/액세서리 표식(예: "wearing a blue neon jacket" 또는 "wearing a pink head ribbon")을 지정하라.`}
+5. JSON만 출력한다.
 
 시드: ${userSeed}`;
 
@@ -91,15 +98,28 @@ export const generateStoryBible = async (userSeed, imageBase64) => {
 };
 
 export const generateNextScene = async (bible, storySummary, userTwist) => {
+  const visualStyle = bible.visual_style || '';
+  const isReal = visualStyle.includes('live-action') || visualStyle.includes('photorealistic');
+
+  const rulePrompt = isReal ? `
+- 현재 드라마는 **초실사 K-드라마(실사풍)** 스타일입니다.
+- image_prompt는 반드시 "${visualStyle}" 문구로 시작해야 합니다.
+- **매우 중요 (인형 금지 규칙):** 실사풍이므로 이미지 프롬프트에 절대 "mannequin", "figure", "puppet", "doll", "toy", "wood", "wooden" 등 인형 관련 단어를 일절 포함하지 마십시오!
+- **인물 묘사 방법:** 프롬프트 내 캐릭터 묘사 시 실제 배우처럼 "a handsome young Korean man [marker]" 혹은 "a beautiful young Korean woman [marker]"의 형태로 구체화하십시오. 캐릭터 이름(예: 철수, 민지)은 모델이 인식하지 못하므로 프롬프트에 포함하지 말고 오직 특징 묘사만 사용하십시오. (예: "a handsome young Korean man wearing a stylish blue shirt and silver glasses with deep sorrowful eyes")
+` : `
+- 현재 드라마는 **목각인형 디오라마 극장** 스타일입니다.
+- image_prompt는 반드시 "${visualStyle}" 문구로 시작해야 합니다.
+- **인물 묘사 방법:** 캐릭터는 "a wooden mannequin figure [marker]" 형태로 인형임을 암시하고, 이름 대신 marker(예: wearing a pink head ribbon)를 사용해 구별되도록 묘사하십시오.
+`;
+
   const prompt = `너는 K-드라마 연출가다. Story Bible과 지금까지의 줄거리, 그리고 새 참가자가 입력한 "다음 전개 한 줄"을 받아 다음 씬을 만들어라.
 규칙:
 - 참가자의 전개를 반드시 반영하되, tone과 setting을 벗어나지 않는다.
-- image_prompt는 반드시 Story Bible의 visual_style 문구로 시작한다.
-- image_prompt에서 캐릭터는 이름이 아니라 marker로 묘사한다. (예: "a wooden mannequin figure wearing a red scarf" — 절대 사람 이름 사용 금지)
 - 새 전개가 기존 Bible에 없는 인물을 요구할 때만 new_characters에 1명을 추가한다. 아니면 빈 배열을 반환한다.
-- dialogues의 character_id는 기존 Bible 또는 new_characters of id만 사용한다.
+- dialogues의 character_id는 기존 Bible 또는 new_characters의 id만 사용한다.
 - cuts는 1개만 생성한다.
-- 대사는 짧고 자막으로 얹기 좋게.
+- 대사는 짧고 자막으로 얹기 좋게 구성한다.
+${rulePrompt}
 
 Story Bible: ${JSON.stringify(bible)}
 지금까지의 줄거리: ${storySummary}
@@ -173,6 +193,7 @@ Story Bible: ${JSON.stringify(bible)}
     }
   }
 
+  return data;
 };
 
 export const generateImage = async (imagePrompt) => {

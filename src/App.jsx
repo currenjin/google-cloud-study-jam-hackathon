@@ -8,7 +8,8 @@ const LOCAL_STORAGE_VERSION = 'v1'
 function App() {
   // stage: 'SEED' (시드 입력) | 'SCENE' (씬 턴 화면) | 'REELS' (릴레이 완성작 상영)
   const [stage, setStage] = useState('SEED')
-  const [seed, setSeed] = useState('재벌집 막내인형과 편의점 알바인형의 계약연애')
+  const [visualStyleType, setVisualStyleType] = useState('real') // 'real' | 'mannequin'
+  const [seed, setSeed] = useState('재벌집 막내아들과 편의점 알바생의 계약연애')
   const [isDemoMode, setIsDemoMode] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [loadingText, setLoadingText] = useState('')
@@ -83,7 +84,12 @@ function App() {
     setLoadingText(demoMode ? '데모 모드 준비 중...' : '바이블 제작 중...')
     
     setTimeout(() => {
-      const initialBible = mockData.bible
+      const initialBible = {
+        ...mockData.bible,
+        visual_style: visualStyleType === 'real'
+          ? "photorealistic live-action cinematic Korean drama scene, real actors with emotional expressions, highly detailed faces, stylish clothing, moody studio lighting, shallow depth of field, professional cinematography, 9:16 vertical, photorealistic, 8k"
+          : "wooden artist mannequin figures on a miniature diorama stage set, soft studio lighting, shallow depth of field, cinematic color grading, 9:16 vertical"
+      };
       const initialScenes = [mockData.scenes[0]]
       setIsDemoMode(demoMode)
       setBible(initialBible)
@@ -108,7 +114,7 @@ function App() {
     try {
       // Step 1: 바이블 생성
       setLoadingText('대본 작가 섭외 중... (바이블 구성)');
-      const bibleData = await generateStoryBible(seed, uploadedImage);
+      const bibleData = await generateStoryBible(seed, uploadedImage, visualStyleType);
       
       // Step 2: 첫 번째 씬 생성 ( user_twist 는 '이야기를 시작한다' 고정 )
       setLoadingText('첫 번째 씬 촬영 중... (씬 대본 작성)');
@@ -944,8 +950,9 @@ function App() {
           ctx.drawImage(img, -w / 2, -h / 2, w, h);
           ctx.restore();
 
-          // 무대 느낌의 암전 처리 오버레이
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+          // 무대 느낌의 암전 처리 오버레이 (실사 스타일이면 더 연하게 0.22, 목각인형이면 0.42)
+          const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
+          ctx.fillStyle = isRealStyle ? 'rgba(0, 0, 0, 0.22)' : 'rgba(0, 0, 0, 0.42)';
           ctx.fillRect(0, 0, 720, 1280);
 
           // 🔥 Veo 모드 시네마틱 입체 라이트 파티클 효과 그리기
@@ -1010,33 +1017,36 @@ function App() {
             poseA = 'shocked';
           }
 
-          // 인형 1 그리기 (좌측)
-          drawPuppet(
-            200, 
-            910, 
-            poseA, 
-            1.4, 
-            speakingCharId === charA.id, 
-            charA.name, 
-            charA.gender === 'M', 
-            '#FF2E93',
-            charA.hair_style || 'short',
-            charA.outfit_type || 'black_suit'
-          );
+          // 실사풍 테마가 아닐 때만 2D 목각인형을 캔버스 무대 위에 렌더링
+          if (!isRealStyle) {
+            // 인형 1 그리기 (좌측)
+            drawPuppet(
+              200, 
+              910, 
+              poseA, 
+              1.4, 
+              speakingCharId === charA.id, 
+              charA.name, 
+              charA.gender === 'M', 
+              '#FF2E93',
+              charA.hair_style || 'short',
+              charA.outfit_type || 'black_suit'
+            );
 
-          // 인형 2 그리기 (우측)
-          drawPuppet(
-            520, 
-            910, 
-            poseB, 
-            1.4, 
-            speakingCharId === charB.id, 
-            charB.name, 
-            charB.gender === 'M', 
-            '#00F0FF',
-            charB.hair_style || 'ponytail',
-            charB.outfit_type || 'blue_apron'
-          );
+            // 인형 2 그리기 (우측)
+            drawPuppet(
+              520, 
+              910, 
+              poseB, 
+              1.4, 
+              speakingCharId === charB.id, 
+              charB.name, 
+              charB.gender === 'M', 
+              '#00F0FF',
+              charB.hair_style || 'ponytail',
+              charB.outfit_type || 'blue_apron'
+            );
+          }
 
         } else {
           // 폴백 단색 배경
@@ -1168,9 +1178,78 @@ function App() {
           <div className="poster-wrapper">
             <h1 className="poster-title">릴드</h1>
             <p className="poster-subtitle">Reels Drama</p>
-            <div className="poster-badge">MANNEQUIN DIORAMA</div>
+            <div className="poster-badge" style={{ background: visualStyleType === 'real' ? '#E63946' : 'var(--border-color)' }}>
+              {visualStyleType === 'real' ? '🎬 ULTRA REALISTIC K-DRAMA' : '🧸 MANNEQUIN DIORAMA'}
+            </div>
           </div>
-          
+
+          {/* 🎭 시각 테마 스타일 선택 카드 */}
+          <div className="input-group" style={{ marginTop: '16px' }}>
+            <label className="input-label">🎬 비주얼 스타일 테마 선택</label>
+            <div className="theme-selectors" style={{
+              display: 'flex',
+              gap: '12px',
+              marginTop: '8px'
+            }}>
+              <button
+                type="button"
+                className={`theme-card ${visualStyleType === 'real' ? 'active' : ''}`}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  borderRadius: '12px',
+                  background: visualStyleType === 'real' ? 'rgba(230, 57, 70, 0.15)' : 'var(--panel-bg)',
+                  border: visualStyleType === 'real' ? '2px solid #E63946' : '1px solid var(--border-color)',
+                  color: 'white',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={() => {
+                  setVisualStyleType('real');
+                  if (seed === '재벌집 막내인형과 편의점 알바인형의 계약연애' || seed === '기억상실증에 걸린 재벌 3세 목각인형과 사실은 출생의 비밀을 숨긴 편의점 알바인형') {
+                    setSeed('재벌집 막내아들과 편의점 알바생의 계약연애');
+                  }
+                }}
+              >
+                <span style={{ fontSize: '24px' }}>🎬</span>
+                <span style={{ fontWeight: 'bold', fontSize: '13px' }}>초실사 K-드라마</span>
+                <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>실사 배우풍 고화질</span>
+              </button>
+              <button
+                type="button"
+                className={`theme-card ${visualStyleType === 'mannequin' ? 'active' : ''}`}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  borderRadius: '12px',
+                  background: visualStyleType === 'mannequin' ? 'rgba(255, 46, 147, 0.15)' : 'var(--panel-bg)',
+                  border: visualStyleType === 'mannequin' ? '2px solid var(--primary-color)' : '1px solid var(--border-color)',
+                  color: 'white',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={() => {
+                  setVisualStyleType('mannequin');
+                  if (seed === '재벌집 막내아들과 편의점 알바생의 계약연애' || seed === '기억상실증에 걸린 재벌 3세와 사실은 출생의 비밀을 숨긴 편의점 알바생') {
+                    setSeed('재벌집 막내인형과 편의점 알바인형의 계약연애');
+                  }
+                }}
+              >
+                <span style={{ fontSize: '24px' }}>🧸</span>
+                <span style={{ fontWeight: 'bold', fontSize: '13px' }}>목각인형 극장</span>
+                <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>관절 인형 디오라마</span>
+              </button>
+            </div>
+          </div>
+
           <div className="input-group">
             <label className="input-label">드라마 시작 시드 (Seed)</label>
             <textarea
@@ -1264,7 +1343,11 @@ function App() {
               <button 
                 type="button" 
                 className="preset-card" 
-                onClick={() => setSeed('기억상실증에 걸린 재벌 3세 목각인형과 사실은 출생의 비밀을 숨긴 편의점 알바인형')}
+                onClick={() => setSeed(
+                  visualStyleType === 'real'
+                    ? '기억상실증에 걸린 재벌 3세와 사실은 출생의 비밀을 숨긴 편의점 알바생의 계약연애'
+                    : '기억상실증에 걸린 재벌 3세 목각인형과 사실은 출생의 비밀을 숨긴 편의점 알바인형'
+                )}
               >
                 <span className="preset-emoji">☕</span>
                 <span className="preset-text">막장 오피스 로맨스</span>
@@ -1272,7 +1355,11 @@ function App() {
               <button 
                 type="button" 
                 className="preset-card" 
-                onClick={() => setSeed('외계인 목각인형 비밀요원들이 지구를 정복하기 위해 주막집을 개업하며 벌어지는 일')}
+                onClick={() => setSeed(
+                  visualStyleType === 'real'
+                    ? '외계인 비밀요원들이 지구를 정복하기 위해 주막집을 개업하며 벌어지는 코미디'
+                    : '외계인 목각인형 비밀요원들이 지구를 정복하기 위해 주막집을 개업하며 벌어지는 일'
+                )}
               >
                 <span className="preset-emoji">🛸</span>
                 <span className="preset-text">SF 개그 요리액션</span>
@@ -1280,7 +1367,11 @@ function App() {
               <button 
                 type="button" 
                 className="preset-card" 
-                onClick={() => setSeed('조선시대 주막집의 목각 인형으로 회귀한 천재 요리사의 화려한 복수극')}
+                onClick={() => setSeed(
+                  visualStyleType === 'real'
+                    ? '조선시대 주막집의 한량으로 회귀한 천재 요리사의 화려한 복수극'
+                    : '조선시대 주막집의 목각 인형으로 회귀한 천재 요리사의 화려한 복수극'
+                )}
               >
                 <span className="preset-emoji">⚔️</span>
                 <span className="preset-text">퓨전 사극 회귀물</span>
