@@ -1,54 +1,72 @@
-# Google Cloud Study Jam Hackathon — 릴드 (Reels Drama)
+# 🎬 릴드 (Reels Drama) — AI 기반 릴레이 숏폼 공동 창작 플랫폼
 
-2026-07-16 (목) 12:00–17:00 · 서울신라호텔 본관 3층 오키드룸 · 실제 개발 시간 **120분** (13:20–15:20)
+> **Google Cloud Study Jam Hackathon (2026-07-16)**  
+> **Track:** Gemini in Entertainment  
+> **Topic:** 텍스트 시드와 참여자들의 릴레이 한 줄 개입을 바탕으로, 하나의 완성도 높은 숏폼 드라마를 실시간 공동 창작하는 플랫폼.
 
-## 프로젝트: 릴드 (Reels Drama)
+---
 
-텍스트 프롬프트를 시드로 주면, 여러 사람이 **릴레이로 한 줄씩 전개를 이어가며** AI가 숏폼 드라마를 만들어주는 참여형 엔터테인먼트 앱. 이미지 시드는 해커톤 이후 확장 범위다.
+## 💡 서비스 컨셉: "우리가 만드는 한 줄의 기적"
 
-- **트랙:** Gemini in Entertainment
-- **비주얼 콘셉트:** 목각인형(artist mannequin) 디오라마 스타일 — 캐릭터 일관성 문제를 해결하면서 그 자체로 밈 감성
-- **핵심 기믹:** Story Bible(JSON)로 인물·배경·톤을 고정하고, 턴마다 Gemini가 각본 + Nano Banana가 컷 이미지를 생성
+**릴드 (Reels Drama)**는 하나의 재미있는 드라마 아이디어(Seed)에서 출발합니다. 참여자가 번갈아가며(Hotseat Relay) 캐릭터의 행보나 이야기 전개에 한 줄로 기습 개입(User Twist)을 하면, **Gemini 가 실시간으로 앞선 맥락을 반영한 대본과 연출을 작성하고 Imagen 3가 드라마 씬 컷을 인화**합니다.
 
-## 🚀 당일 시작 순서 (13:20 개발 시작과 동시에)
+여러 사람의 상상력이 충돌하고 이어지며 탄생하는 **세상에 단 하나뿐인 드라마**를 세로형 스토리 플레이어로 즉시 감상하세요!
 
-이 레포가 곧 프로젝트 워크스페이스다. Antigravity로 이 폴더를 열면 `AGENTS.md`가 자동으로 에이전트 컨텍스트에 주입된다.
+### 🎨 비주얼 시그니처: "목각 인형(Mannequin) 디오라마"
+* **캐릭터 일관성(Consistency)의 돌파구:** Generative AI 만화/영화 제작의 가장 큰 난제인 '매 컷 인물 생김새가 달라지는 현상'을 **예술적 장치**로 승화시켰습니다.
+* **유니크한 예술 테마:** 등장인물들을 '나무 목각 미술 인형(Artist Mannequin)'으로 고정하고, 미니어처 디오라마 세트장에서 연극을 펼치는 콘셉트를 적용하여 고유의 시그니처 비주얼과 따뜻한 밈(Meme) 감성을 구현했습니다.
 
-1. Antigravity 로그인 — **프로젝트 ID 지정 필수** (Business Plan 적용)
-2. 이 레포 클론 → Antigravity로 폴더 열기
-3. `cp .env.example .env` → AI Studio에서 받은 임시 API 키 입력 (`.env` 커밋 금지)
-4. [docs/04-kickoff-prompts.md](docs/04-kickoff-prompts.md) 최상단의 **⭐ 전체 위임 프롬프트 하나를 붙여넣기** → M1→M3+ 자동 진행 (단계별로 가려면 M1~M3 프롬프트 사용)
+---
 
-## 문서
+## ✨ 핵심 기능 (Core Features)
 
-| 문서 | 내용 |
-|---|---|
-| [AGENTS.md](AGENTS.md) | Antigravity 에이전트 컨텍스트 (스택·설계·스코프 결정 사항, 자동 로드) |
-| [docs/00-before-hackathon.md](docs/00-before-hackathon.md) | 해커톤 시작 전에 해놓을 것 (환경 세팅, 로지스틱스) |
-| [docs/01-hackathon-plan.md](docs/01-hackathon-plan.md) | 해커톤에서 해야 할 것 (120분 타임박스 실행 계획) |
-| [docs/02-winning-strategy.md](docs/02-winning-strategy.md) | 수상을 위해 준비해야 할 것 (심사 기준 공략, 제출물, 발표) |
-| [docs/03-prompts.md](docs/03-prompts.md) | Story Bible 스키마, 프롬프트 3종, 데모 시나리오 (현장 복붙용) |
-| [docs/04-kickoff-prompts.md](docs/04-kickoff-prompts.md) | Antigravity에 붙여넣을 M1–M3 킥오프 프롬프트 |
-| [docs/05-tools-guide.md](docs/05-tools-guide.md) | GCP/AI Studio/Antigravity 상세 사용법 (계정·프로젝트·API 키, 트러블슈팅) |
-| [docs/06-submission-pack.md](docs/06-submission-pack.md) | 제출물 팩 — Project Description 초안, 출품 README 골격, 데모 대본, 최종 체크 |
+### 1. 🗂️ 룰북 구성 엔진 (Story Bible Engine)
+* 시드(Seed) 아이디어 하나만 입력하면 Gemini가 드라마의 **제목, 로그라인, 세계관 톤앤매너, 핵심 등장인물 3인(이름, 성격, 목각인형 외모 묘사)**을 정교하게 설계해 하나의 독립된 세계관 바이블을 완성합니다.
 
-## ⚠️ 잊지 말 것
+### 2. 📱 핫시트 릴레이 인터랙션 (Hotseat Relay Flow)
+* **모바일 프렌들리 UI:** "다음 기기를 전달해 주세요" 오버레이를 통해 파티 게임처럼 여러 명의 플레이어가 오프라인에서 하나의 디바이스를 주거니 받거니 하며 이야기를 이어가도록 유도합니다.
+* **실시간 대본 및 일화 연동:** 플레이어가 개입한 `user_twist`를 바탕으로 Gemini가 이전 편의 줄거리 요약(`updated_story_summary`)을 누적 추론해 다음 화의 고유 각본과 시각 촬영 프롬프트를 이어 작성합니다.
 
-- 규정상 재제출 금지는 **타 대회 제출/수상 이력 프로젝트** 대상 — 이 레포는 이번 해커톤용 신규 기획이며, 현재는 기획 문서와 UI 개발용 목업 자산만 있다. 출품 코드는 현장에서 작성한다.
-- 제공되는 @gcplab.me 계정과 GCP 프로젝트는 **행사 종료 즉시 삭제**된다. 코드는 수시로 GitHub에 푸시.
-- 프로젝트 내 자율형 AI 에이전트(OpenClaw 등) 사용 금지.
-- `VITE_GEMINI_API_KEY`는 브라우저에 노출되므로 로컬 데모에서만 임시·제한된 행사 키를 사용하고 종료 직후 폐기한다. 공개 배포 시에는 Cloud Run 같은 백엔드 프록시가 필요하다.
+### 3. 🎬 세로형 완성 릴 상영 (Reels Playback Stage)
+* **인스타그램 스토리 스타일 플레이어:** 제작된 모든 화수를 한눈에 볼 수 있도록 상단에 정렬된 프로그레스 바 영역을 설계했습니다.
+* **시네마틱 모션 & 자막 연출:** 컷당 3.5초 단위 자동 슬라이딩 연출을 제공하며, **서서히 줌인되는 미세 카메라 무브먼트(Ken Burns Effect)** 및 화면 하단에 검은색 그라데이션 필터와 타이포그래피 자막 오버레이를 적용해 깊은 몰입감을 줍니다.
+* **씬 에피소드 인트로 카드:** 다음 화로 넘어갈 때마다 타이틀 오버레이가 스르륵 나타났다 사라지며 전환을 알립니다.
 
-## 제출물 (해커톤 종료 전까지)
+### 4. 🛠️ 결함 허용 및 데이터 보존 (Resilience & Fallbacks)
+* **어두운 타이포그래피 카드 폴백:** Imagen 3 생성 지연이나 세션 만료, 일시적 통신 오류가 발생해도 드라마 감상이 뚝 끊기지 않도록, 어두운 배경에 내레이션을 타이포그래피로 연출한 고급 텍스트 카드가 이미지 자리를 대체합니다.
+* **무중단 로컬 백업:** 대용량 base64 이미지 데이터를 스마트하게 정제하여 순수 텍스트 상태만 `localStorage`에 무압축 동기화합니다. 브라우저 새로고침이나 실수로 창을 닫아도 쓰던 대본과 누적된 드라마가 즉시 안전하게 백업 및 자동 복구됩니다.
+* **데모 시나리오 모드 탑재:** API 키 없이 오프라인 환경이나 제한된 부스 시연 상황에서도 온전하게 4화 분량의 공동 창작 해피 패스를 체험해 볼 수 있도록 고품질 수제작 디오라마 에셋 매핑 데이터 기반 데모 모드를 내장했습니다.
 
-1. Project Description (프로젝트 소개)
-2. Public GitHub Repository (소스코드)
-3. Demo Video (YouTube / Google Drive 링크)
+---
 
-## 심사 기준
+## 🛠️ 기술 스택 (Tech Stack)
 
-- **Technical Demo** — 에러 없이 정상 동작하는가
-- **Impact** — 실제 문제를 해결하는가, 문제가 충분히 중요한가
-- **Creativity** — 기존에 없던 새로운 접근인가
+* **Frontend:** React, Vite, Vanilla CSS (Modern Neon Dark Theme & Glassmorphism)
+* **GenAI:** 
+  * `@google/genai` (SDK 사용)
+  * **Gemini 2.5 Flash:** Structured Output (JSON Schema)을 이용해 엄격하게 약속된 JSON 바이블/각본 구조를 파싱
+  * **Imagen 3:** 9:16 종횡비 스튜디오 스토리보드 이미지 실시간 렌더링
 
-<!-- Connection test by Antigravity -->
+---
+
+## 🚀 로컬 실행 방법 (How to Run)
+
+### 1. 사전 준비 (Prerequisites)
+* Node.js v22+ 및 npm 설치가 필요합니다.
+
+### 2. 패키지 설치
+```bash
+npm install
+```
+
+### 3. 환경 변수 설정
+프로젝트 루트 디렉토리에 `.env` 파일을 생성하고 Google AI Studio에서 발급받은 API 키를 기입합니다.
+```env
+VITE_GEMINI_API_KEY=your_actual_gemini_api_key_here
+```
+
+### 4. 개발 서버 구동
+```bash
+npm run dev
+```
+브라우저에서 `http://localhost:5173/`로 접속해 "릴드" 공동 창작을 시작해 보세요!
