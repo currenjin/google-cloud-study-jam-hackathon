@@ -275,9 +275,9 @@ export const generateHighlightVideo = async (imagePrompt, imageBase64, cameraDir
     cleanBase64 = imageBase64.split(';base64,')[1];
   }
 
-  const runGeneration = async (aspectRatio) => {
+  const runGeneration = async (model, aspectRatio) => {
     let operation = await ai.models.generateVideos({
-      model: 'veo-3.1-fast-generate-preview',
+      model,
       prompt: imagePrompt + " " + cameraDirective,
       image: { imageBytes: cleanBase64, mimeType: 'image/jpeg' },
       config: {
@@ -307,10 +307,26 @@ export const generateHighlightVideo = async (imagePrompt, imageBase64, cameraDir
     }
   };
 
-  try {
-    return await runGeneration('9:16');
-  } catch (error) {
-    console.warn('Veo 9:16 failed, retrying with 16:9...', error);
-    return await runGeneration('16:9');
+  // 쿼터(429)는 모델별로 분리되어 있음 (실측 확인) — fast 소진 시 lite/standard로 자동 전환
+  const MODELS = ['veo-3.1-fast-generate-preview', 'veo-3.1-lite-generate-preview', 'veo-3.1-generate-preview'];
+  let lastErr = null;
+  for (const model of MODELS) {
+    try {
+      return await runGeneration(model, '9:16');
+    } catch (error) {
+      lastErr = error;
+      const msg = String(error?.message || error);
+      if (msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED')) {
+        console.warn(`Veo quota exhausted on ${model}, trying next model...`);
+        continue;
+      }
+      try {
+        console.warn(`Veo 9:16 failed on ${model}, retrying with 16:9...`, error);
+        return await runGeneration(model, '16:9');
+      } catch (e2) {
+        lastErr = e2;
+      }
+    }
   }
+  throw lastErr;
 };

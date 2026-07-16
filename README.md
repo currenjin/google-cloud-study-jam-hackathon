@@ -8,7 +8,7 @@
 
 ## 💡 서비스 컨셉: "우리가 만드는 한 줄의 기적"
 
-**릴드 (Reels Drama)**는 하나의 재미있는 드라마 아이디어(Seed)에서 출발합니다. 참여자가 번갈아가며(Hotseat Relay) 캐릭터의 행보나 이야기 전개에 한 줄로 기습 개입(User Twist)을 하면, **Gemini 가 실시간으로 앞선 맥락을 반영한 대본과 연출을 작성하고 Imagen 3가 드라마 씬 컷을 인화**합니다.
+**릴드 (Reels Drama)**는 하나의 재미있는 드라마 아이디어(Seed)에서 출발합니다. 참여자가 번갈아가며(Hotseat Relay) 캐릭터의 행보나 이야기 전개에 한 줄로 기습 개입(User Twist)을 하면, **Gemini 3가 앞선 맥락을 반영한 각본을 쓰고, Gemini 3.1 이미지 모델이 장면 컷을 인화하며, Veo 3.1이 각 장면을 실제 움직이는 시네마틱 클립으로 촬영**합니다.
 
 여러 사람의 상상력이 충돌하고 이어지며 탄생하는 **세상에 단 하나뿐인 드라마**를 세로형 스토리 플레이어로 즉시 감상하세요!
 
@@ -42,10 +42,10 @@
 ## 🛠️ 기술 스택 (Tech Stack)
 
 * **Frontend:** React, Vite, Vanilla CSS (Modern Neon Dark Theme & Glassmorphism)
-* **GenAI:** 
-  * `@google/genai` (SDK 사용)
-  * **Gemini 2.5 Flash:** Structured Output (JSON Schema)을 이용해 엄격하게 약속된 JSON 바이블/각본 구조를 파싱
-  * **Imagen 3:** 9:16 종횡비 스튜디오 스토리보드 이미지 실시간 렌더링
+* **GenAI:** (모두 Google AI Studio API — `@google/genai` SDK)
+  * **Gemini 3 Flash** (`gemini-3-flash-preview`): Structured Output(JSON Schema)으로 Story Bible/각본 생성 + 기승전결 서사 단계 주입, 런타임 검증
+  * **Gemini 3.1 Flash Image** (`gemini-3.1-flash-image`): 9:16 시네마틱 컷 생성 — 직전 컷을 레퍼런스로 전달해 장면 연속성 유지
+  * **Veo 3.1 Fast** (`veo-3.1-fast-generate-preview`): image-to-video로 각 장면을 실제 움직이는 클립으로 촬영 (비동기 오퍼레이션 폴링, 씬별 백그라운드 병렬 생성)
 
 ---
 
