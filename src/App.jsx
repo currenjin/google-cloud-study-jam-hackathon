@@ -27,6 +27,11 @@ function App() {
   const [showEndingCard, setShowEndingCard] = useState(false)
   const [showSceneTitleCard, setShowSceneTitleCard] = useState(true)
 
+  // M4 추가 상태 (실제 비디오 레코딩)
+  const [isCompilingVideo, setIsCompilingVideo] = useState(false)
+  const [recordedVideoUrl, setRecordedVideoUrl] = useState(null)
+  const [videoCompilationText, setVideoCompilationText] = useState('')
+
   // 1. localStorage 로드 및 복구
   useEffect(() => {
     try {
@@ -240,33 +245,239 @@ function App() {
     }
   }
 
-  // M3: 🎬 릴 재생 관련 타이머 로직
+  // M4: Canvas 비디오 렌더링 및 MediaRecorder 레코딩 로직
   useEffect(() => {
-    let playTimer;
-    let cardTimer;
+    let animationFrameId;
+    let recorder;
+    let stream;
+    let active = true;
 
-    if (stage === 'REELS' && !showEndingCard) {
-      // 씬 전환 시 에피소드 제목 카드를 1초 동안 보여주기
-      setShowSceneTitleCard(true);
-      cardTimer = setTimeout(() => {
-        setShowSceneTitleCard(false);
-      }, 1000);
-
-      // 3.5초 후 다음 씬으로 슬라이드
-      playTimer = setTimeout(() => {
-        if (reelsIndex < scenes.length - 1) {
-          setReelsIndex(prev => prev + 1);
-        } else {
-          setShowEndingCard(true);
-        }
-      }, 3500);
+    if (stage !== 'REELS') {
+      return;
     }
 
-    return () => {
-      clearTimeout(playTimer);
-      clearTimeout(cardTimer);
+    const canvas = document.getElementById('reels-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // 비디오 녹화 시작 함수
+    const startCanvasReels = async () => {
+      setIsCompilingVideo(true);
+      setVideoCompilationText('🎬 비디오 상영용 원본 프레임 인화 중 (이미지 다운로드)...');
+
+      // 1. 모든 에피소드 이미지 프리로드 (CORS 회피용 crossOrigin 적용)
+      const loadedImages = {};
+      const loadPromises = scenes.map((scene, idx) => {
+        return new Promise((resolve) => {
+          const cut = scene.cuts[0];
+          if (!cut || !cut.image_url) {
+            resolve(null);
+            return;
+          }
+          const img = new Image();
+          img.crossOrigin = 'anonymous'; // 타락한 캔버스(tainted canvas) 보안 에러 회피용
+          img.src = cut.image_url;
+          img.onload = () => resolve({ idx, img });
+          img.onerror = () => resolve(null);
+        });
+      });
+
+      const loadedList = await Promise.all(loadPromises);
+      loadedList.forEach(item => {
+        if (item) {
+          loadedImages[item.idx] = item.img;
+        }
+      });
+
+      if (!active) return;
+      setIsCompilingVideo(false);
+
+      // 2. MediaRecorder 셋업 (캔버스에서 초당 30프레임 스트림 캡처)
+      try {
+        stream = canvas.captureStream(30);
+        let options = { mimeType: 'video/webm;codecs=vp9' };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options = { mimeType: 'video/webm' };
+        }
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options = { mimeType: 'video/mp4' };
+        }
+
+        const chunks = [];
+        recorder = new MediaRecorder(stream, options);
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) {
+            chunks.push(e.data);
+          }
+        };
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: 'video/webm' });
+          const videoUrl = URL.createObjectURL(blob);
+          setRecordedVideoUrl(videoUrl);
+          setShowEndingCard(true);
+        };
+
+        recorder.start();
+      } catch (err) {
+        console.error('Failed to start MediaRecorder', err);
+      }
+
+      // 3. 애니메이션 그리기 루프
+      const totalDuration = scenes.length * 3500; // 화수당 3.5초
+      let startTime = null;
+
+      const wrapText = (text, x, y, maxWidth, lineHeight) => {
+        const words = text.split(' ');
+        let line = '';
+        let lines = [];
+
+        for (let n = 0; n < words.length; n++) {
+          let testLine = line + words[n] + ' ';
+          let metrics = ctx.measureText(testLine);
+          let testWidth = metrics.width;
+          if (testWidth > maxWidth && n > 0) {
+            lines.push(line);
+            line = words[n] + ' ';
+          } else {
+            line = testLine;
+          }
+        }
+        lines.push(line);
+
+        const startY = y - ((lines.length - 1) * lineHeight) / 2;
+        for (let i = 0; i < lines.length; i++) {
+          ctx.fillText(lines[i].trim(), x, startY + i * lineHeight);
+        }
+      };
+
+      const loop = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+
+        if (elapsed >= totalDuration) {
+          // 녹화 정지
+          if (recorder && recorder.state !== 'inactive') {
+            recorder.stop();
+          }
+          return;
+        }
+
+        const currentSceneIdx = Math.floor(elapsed / 3500);
+        const sceneElapsed = elapsed % 3500;
+        const progressPct = sceneElapsed / 3500;
+
+        // 리액트 사이드 상태 변수 동기화
+        setReelsIndex(currentSceneIdx);
+
+        const scene = scenes[currentSceneIdx];
+
+        // 캔버스 초기화
+        ctx.clearRect(0, 0, 720, 1280);
+
+        // 1. 이미지 그리기 (Ken Burns 슬로우 줌 연출)
+        if (loadedImages[currentSceneIdx]) {
+          const img = loadedImages[currentSceneIdx];
+          const scale = 1.0 + progressPct * 0.12; // 12% 줌인
+          const w = 720 * scale;
+          const h = 1280 * scale;
+          const x = (720 - w) / 2;
+          const y = (1280 - h) / 2;
+          ctx.drawImage(img, x, y, w, h);
+        } else {
+          // 폴백 단색 배경
+          ctx.fillStyle = '#0e0e11';
+          ctx.fillRect(0, 0, 720, 1280);
+          ctx.fillStyle = '#E2E2E8';
+          ctx.font = '28px sans-serif';
+          ctx.textAlign = 'center';
+          wrapText(scene.narration, 360, 640, 640, 44);
+        }
+
+        // 2. 씬 전환 시 에피소드 오버레이 (첫 1초 페이드아웃)
+        if (sceneElapsed < 1000) {
+          const alpha = 1.0 - (sceneElapsed / 1000);
+          ctx.fillStyle = `rgba(0, 0, 0, ${0.85 * alpha})`;
+          ctx.fillRect(0, 0, 720, 1280);
+
+          ctx.fillStyle = `rgba(255, 46, 147, ${alpha})`;
+          ctx.font = 'bold 36px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(scene.scene_title, 360, 600);
+
+          ctx.fillStyle = `rgba(180, 180, 180, ${alpha})`;
+          ctx.font = 'italic 24px sans-serif';
+          ctx.fillText(`"${scene.user_twist}"`, 360, 660);
+        }
+
+        // 3. 인스타그램형 진행바 상단 렌더링
+        const segmentWidth = (720 - 32 - (scenes.length - 1) * 6) / scenes.length;
+        for (let i = 0; i < scenes.length; i++) {
+          const segX = 16 + i * (segmentWidth + 6);
+          const segY = 24;
+
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.fillRect(segX, segY, segmentWidth, 4);
+
+          if (i < currentSceneIdx) {
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(segX, segY, segmentWidth, 4);
+          } else if (i === currentSceneIdx) {
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(segX, segY, segmentWidth * progressPct, 4);
+          }
+        }
+
+        // 4. 자막 오버레이 하단 렌더링
+        const gradient = ctx.createLinearGradient(0, 1280 - 260, 0, 1280);
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        gradient.addColorStop(0.3, 'rgba(0, 0, 0, 0.7)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 1280 - 260, 720, 260);
+
+        if (scene.dialogues && scene.dialogues.length > 0) {
+          const d = scene.dialogues[0];
+          const char = bible.characters.find(c => c.id === d.character_id);
+          const speakerName = char ? char.name : d.character_id;
+
+          ctx.fillStyle = '#FF2E93';
+          ctx.font = 'bold 24px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(speakerName, 360, 1280 - 150);
+
+          ctx.fillStyle = '#FFF';
+          ctx.font = 'bold 32px sans-serif';
+          ctx.fillText(`"${d.line}"`, 360, 1280 - 90);
+        } else {
+          ctx.fillStyle = '#E2E2E8';
+          ctx.font = 'bold 28px sans-serif';
+          ctx.textAlign = 'center';
+          wrapText(scene.narration, 360, 1280 - 120, 640, 38);
+        }
+
+        if (active) {
+          animationFrameId = requestAnimationFrame(loop);
+        }
+      };
+
+      animationFrameId = requestAnimationFrame(loop);
     };
-  }, [stage, reelsIndex, scenes.length, showEndingCard]);
+
+    startCanvasReels();
+
+    return () => {
+      active = false;
+      cancelAnimationFrame(animationFrameId);
+      if (recorder && recorder.state !== 'inactive') {
+        recorder.stop();
+      }
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [stage, scenes, bible]);
 
   if (isLoading) {
     return (
@@ -519,98 +730,87 @@ function App() {
         </section>
       )}
 
-      {/* 3. 완성 릴 재생 화면 */}
+      {/* 3. 완성 릴 재생 및 비디오 저장 화면 */}
       {stage === 'REELS' && bible && scenes.length > 0 && (
         <section className="stage-reels">
           {/* 재생 닫기 버튼 */}
           <button 
             type="button" 
             className="btn-close-reels"
-            onClick={() => setStage('SCENE')}
+            onClick={() => {
+              setRecordedVideoUrl(null);
+              setShowEndingCard(false);
+              setStage('SCENE');
+            }}
           >
             ✕
           </button>
 
-          {/* 인스타그램 스타일 스토리 프로그레스 바 */}
-          <div className="reels-progress-bar">
-            {scenes.map((_, i) => {
-              let pct = 0;
-              if (showEndingCard) {
-                pct = 100;
-              } else if (i < reelsIndex) {
-                pct = 100;
-              } else if (i === reelsIndex) {
-                pct = 100; // 자동 애니메이션 대신 심플 채우기 혹은 커스텀 연출
-              }
-              return (
-                <div key={i} className="progress-segment">
-                  <div className="progress-fill" style={{ width: `${pct}%` }}></div>
-                </div>
-              )
-            })}
-          </div>
+          {/* 인화 & 렌더링용 실시간 레코딩 캔버스 */}
+          <canvas 
+            id="reels-canvas" 
+            width="720" 
+            height="1280" 
+            style={{ display: (isCompilingVideo || showEndingCard) ? 'none' : 'block' }}
+            className="reels-render-canvas"
+          />
 
           <div className="reels-viewport">
-            {!showEndingCard ? (
-              <>
-                {/* 컷 이미지 또는 텍스트 폴백 카드 */}
-                {scenes[reelsIndex].cuts[0].image_url ? (
-                  <img 
-                    className="reels-image animate-ken-burns" 
-                    src={scenes[reelsIndex].cuts[0].image_url} 
-                    alt={scenes[reelsIndex].cuts[0].image_prompt} 
-                  />
-                ) : (
-                  <div className="reels-text-fallback-card">
-                    <p className="fallback-narration">{scenes[reelsIndex].narration}</p>
-                  </div>
-                )}
+            {isCompilingVideo && (
+              <div className="reels-compiling-loader">
+                <div className="spinner"></div>
+                <p className="compiling-text">{videoCompilationText}</p>
+              </div>
+            )}
 
-                {/* 씬 전환시 타이틀 카드 팝업 (1초 오버레이) */}
-                {showSceneTitleCard && (
-                  <div className="scene-title-overlay">
-                    <h3 className="overlay-episode-title">{scenes[reelsIndex].scene_title}</h3>
-                    <p className="overlay-episode-prompt">"{scenes[reelsIndex].user_twist}"</p>
-                  </div>
-                )}
-
-                {/* 자막 오버레이 */}
-                <div className="reels-subtitle-overlay">
-                  {scenes[reelsIndex].dialogues.length > 0 ? (
-                    <div className="reels-dialogue">
-                      <span className="reels-char-name">
-                        {bible.characters.find(c => c.id === scenes[reelsIndex].dialogues[0].character_id)?.name || '인물'}
-                      </span>
-                      <p className="reels-line-content">"{scenes[reelsIndex].dialogues[0].line}"</p>
-                    </div>
-                  ) : (
-                    <p className="reels-narration-subtitle">{scenes[reelsIndex].narration}</p>
-                  )}
-                </div>
-              </>
-            ) : (
-              /* 엔딩 카드 */
+            {showEndingCard && (
+              /* 비디오 제작 완결 엔딩 카드 및 실제 MP4/WebM 다운로드 */
               <div className="reels-ending-card">
                 <span className="ending-logo">🎬</span>
-                <h2 className="ending-title">오늘의 에피소드 완결!</h2>
-                <p className="ending-sub">총 {scenes.length}개의 전개가 매끄럽게 연결되었습니다.</p>
-                <div className="ending-button-group">
+                <h2 className="ending-title">오늘의 숏폼 영상 제작 완료!</h2>
+                <p className="ending-sub">총 {scenes.length}개의 전개가 완벽한 9:16 세로형 동영상 파일로 결합 인화되었습니다.</p>
+                
+                {recordedVideoUrl ? (
+                  <div className="video-preview-box">
+                    <p className="preview-label">🎬 실시간 인코딩된 실제 동영상 미리보기:</p>
+                    <video 
+                      src={recordedVideoUrl} 
+                      controls 
+                      autoPlay 
+                      loop 
+                      className="reels-video-preview"
+                    />
+                    <a 
+                      href={recordedVideoUrl} 
+                      download={`${bible.title.replace(/\s+/g, '_')}_final.webm`} 
+                      className="btn btn-primary btn-download-video"
+                    >
+                      📥 실제 동영상 파일 다운로드 (.webm)
+                    </a>
+                  </div>
+                ) : (
+                  <p className="compiling-text">🎥 동영상 인코딩 중...</p>
+                )}
+
+                <div className="ending-button-group" style={{ marginTop: '20px' }}>
                   <button 
                     type="button" 
-                    className="btn btn-primary"
-                    onClick={() => setStage('SCENE')}
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setRecordedVideoUrl(null);
+                      setShowEndingCard(false);
+                      setStage('SCENE');
+                    }}
                   >
                     ✍️ 계속 공동 창작하기
                   </button>
                   <button 
                     type="button" 
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      setReelsIndex(0);
-                      setShowEndingCard(false);
-                    }}
+                    className="btn btn-back-seed"
+                    style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', height: '40px', borderRadius: '8px', cursor: 'pointer' }}
+                    onClick={resetDrama}
                   >
-                    🔁 처음부터 다시보기
+                    🔁 새 드라마 시작하기
                   </button>
                 </div>
               </div>
