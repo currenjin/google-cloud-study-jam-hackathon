@@ -29,6 +29,7 @@
 | [docs/02-winning-strategy.md](docs/02-winning-strategy.md) | 수상을 위해 준비해야 할 것 (심사 기준 공략, 제출물, 발표) |
 | [docs/03-prompts.md](docs/03-prompts.md) | Story Bible 스키마, 프롬프트 3종, 데모 시나리오 (현장 복붙용) |
 | [docs/04-kickoff-prompts.md](docs/04-kickoff-prompts.md) | Antigravity에 붙여넣을 M1–M3 킥오프 프롬프트 |
+| [docs/05-tools-guide.md](docs/05-tools-guide.md) | GCP/AI Studio/Antigravity 상세 사용법 (계정·프로젝트·API 키, 트러블슈팅) |
 
 ## ⚠️ 잊지 말 것
 

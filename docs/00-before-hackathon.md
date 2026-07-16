@@ -31,8 +31,11 @@
 
 ## 4. 현장 도착 직후 (개발 시작 전)
 
-- [ ] @gcplab.me 계정 ID/PW 수령 → 시크릿 창에서 <https://console.cloud.google.com> 로그인 → 할당된 프로젝트 선택
+> 툴이 처음이면 [05-tools-guide.md](05-tools-guide.md)를 먼저 읽는다 — 어떤 프로젝트를 선택하는지, 화면 어디를 누르는지, 흔한 에러 대응까지 정리되어 있다.
+
+- [ ] @gcplab.me 계정 ID/PW 수령 → 시크릿 창에서 <https://console.cloud.google.com> 로그인 → 할당된 프로젝트(1개뿐) 선택 + **프로젝트 ID 메모**
 - [ ] <https://ai.studio> 로그인 → "Get API key" → 키가 안 보이면 "Import Projects"로 프로젝트 선택 → API 키 확보
+- [ ] AI Studio 모델 목록에서 텍스트/이미지 모델 ID 확인 (AGENTS.md의 모델명과 다르면 에이전트에게 교체 지시)
 - [ ] Antigravity 로그인 (프로젝트 ID 지정!) → **이 레포 클론해서 폴더 열기** (AGENTS.md 자동 로드)
 - [ ] `cp .env.example .env` → API 키 입력
 - [ ] 행사 키는 localhost에서만 사용하고 공개 배포하지 않는다. `.env` 커밋 금지, 행사 종료 직후 키 폐기

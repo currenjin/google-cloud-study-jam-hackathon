@@ -18,8 +18,9 @@ AGENTS.md와 docs/03-prompts.md를 읽고 시작해.
 M1을 구현해줘: Vite + React 프로젝트를 이 폴더에 스캐폴드하고,
 다음 한 사이클이 동작하게 만들어.
 
-먼저 demo-assets/mock-scenes.json의 목업 데이터로 화면 렌더링부터 완성한 뒤,
-실제 Gemini 호출로 교체해 (UI 확인을 API 대기 없이 하기 위해).
+스캐폴드할 때 demo-assets/를 public/demo-assets/로 복사해서 /demo-assets/... 경로가
+dev와 build 양쪽에서 동작하게 해. 먼저 mock-scenes.json의 목업 데이터로
+시드/씬 화면 렌더링을 완성한 뒤, 실제 Gemini 호출로 교체해 (릴 재생 화면은 M3에서).
 
 목업과 실제 API 응답은 docs/03-prompts.md의 정규화 규칙을 따라 같은 클라이언트 형태로 변환해.
 Gemini 텍스트 호출은 responseMimeType만 쓰지 말고 설치한 @google/genai 버전의 공식 방식으로
@@ -32,8 +33,10 @@ Story Bible/Scene 구조화 출력 스키마를 지정하고, 파싱 후 필수 
 5. 결과 화면: 이미지 + 씬 제목 + 내레이션 + 대사 표시
 
 Gemini 호출 모듈은 src/gemini.js 하나로 모아줘 (바이블 생성 / 씬 생성 / 이미지 생성 함수 3개).
-각 요청에 타임아웃을 두고, 키 누락·텍스트/API/검증 실패가 재시도 후에도 계속되면
-VITE_DEMO_MODE와 동일하게 mock-scenes.json으로 전체 흐름을 유지해.
+각 요청에 타임아웃을 둬. 시작 화면에서 API 키 누락이나 바이블 생성 실패가 확인되면
+"데모 모드로 체험" 진입을 제안해 (활성 중 "DEMO" 배지 항상 표시).
+릴레이 도중 씬 생성이 재시도 후에도 실패하면 목업으로 대체하지 말고,
+콘셉트 에러 카드 + 재시도 버튼으로 처리해 (사용자 입력 보존).
 완성되면 npm run dev로 띄워서 시드 "재벌집 막내인형과 편의점 알바인형의 계약연애"로
 동작 확인하고 npm run build 통과 후 커밋해.
 ```
@@ -67,6 +70,7 @@ M3를 구현해줘: 완성 릴 재생 + 폴백 + 폴리시.
 3. 모든 생성 대기에 로딩 상태 ("촬영 중...", "대본 쓰는 중..." 콘셉트 문구)
 4. 전체 UI를 다듬어줘: 다크 배경, 세로 프레임 중심 레이아웃, 드라마 포스터 느낌의 타이틀
 5. VITE_DEMO_MODE=true이면 API를 전혀 호출하지 않고 mock-scenes.json으로 같은 전체 플로우를 제공
+   — 단 드라마 시작 전에만 진입 가능하고, 활성 중에는 화면에 "DEMO" 배지를 항상 표시
 
 시드부터 릴 재생까지 전체 플로우를 확인하고, DEMO_MODE와 강제 이미지 실패 폴백도 각각 확인해.
 npm run build 통과 후 커밋해.
@@ -74,7 +78,7 @@ npm run build 통과 후 커밋해.
 
 ## M4 (90분 시점 — 에이전트 말고 내가 할 일)
 
-- docs/03-prompts.md의 데모 시나리오대로 화면 녹화 (⌘⇧5)
+- docs/03-prompts.md의 데모 시나리오대로 화면 녹화 (⌘⇧5) — **DEMO_MODE 아닌 실제 생성 화면으로만**, 녹화 중 새로고침 금지 (복구 시 이미지가 텍스트 카드로 바뀜)
 - 영상 업로드(YouTube unlisted/Drive) → 링크 확보
 - 에이전트에게 마지막 요청: "README를 출품용으로 다시 써줘 — 한 줄 소개, 데모 영상 링크, 스크린샷, 실제 사용한 아키텍처(Gemini 각본/이미지 + Story Bible 일관성), 실행 방법. 사용하지 않은 Cloud Run/Veo/이미지 시드는 구현한 것처럼 쓰지 마"
 - 최종 push, repo public 확인, Project Description 제출
