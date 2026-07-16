@@ -4,7 +4,7 @@
 
 ## 무엇을 만드는가
 
-프롬프트/이미지를 시드로 받아, 여러 사람이 **릴레이로 한 줄씩 전개를 이어가면** AI가 숏폼 드라마를 만들어주는 참여형 웹앱.
+텍스트 프롬프트를 시드로 받아, 여러 사람이 **릴레이로 한 줄씩 전개를 이어가면** AI가 숏폼 드라마를 만들어주는 참여형 웹앱. 이미지 시드는 MVP 범위 밖이다.
 
 화면 3장 (이 이상 만들지 않는다):
 1. **시드 입력** — 텍스트로 드라마 시작 → Gemini가 Story Bible(JSON) 생성
@@ -14,11 +14,11 @@
 ## 기술 스택 (고정 — 변경하지 않는다)
 
 - **Vite + React (JavaScript).** TypeScript, 라우터, 상태관리 라이브러리, Tailwind 쓰지 않는다. 화면 전환은 단일 state로, 스타일은 `src/App.css` 하나로.
-- **`@google/genai` SDK**, 브라우저에서 직접 호출. API 키는 `.env`의 `VITE_GEMINI_API_KEY` (해커톤용이므로 클라이언트 노출 허용).
+- **`@google/genai` SDK**, 브라우저에서 직접 호출. API 키는 `.env`의 `VITE_GEMINI_API_KEY`. 이 방식은 키가 브라우저에 노출되므로 **localhost의 임시 해커톤 데모에서만** 허용한다. 외부 배포 금지, `.env` 커밋 금지, 행사 종료 직후 키 폐기. 프로덕션은 백엔드 프록시를 사용한다.
 - 모델 (현장에서 AI Studio 목록 기준으로 최종 확인, 없으면 괄호 안 대체):
   - 각본/바이블: `gemini-3-flash-preview` (대체: `gemini-2.5-flash`)
-  - 이미지: `gemini-2.5-flash-image` (품질 필요 시: `gemini-3-pro-image-preview`), aspect ratio 9:16
-- 상태는 React state + localStorage 백업. DB 없음, 서버 없음.
+  - 이미지: `gemini-2.5-flash-image`, aspect ratio 9:16. 현장 AI Studio에서 사용 가능 여부를 먼저 확인하며, 다른 모델 ID를 추측해 자동 대체하지 않는다.
+- 상태는 React state + localStorage 백업. localStorage에는 바이블·요약·대사·프롬프트만 저장하고 base64/blob 이미지와 API 키는 저장하지 않는다. 읽기/쓰기는 `try/catch`로 감싸고 스키마 버전을 둔다. DB 없음, 서버 없음.
 - 배포는 하지 않아도 된다. `npm run dev` 로컬 데모로 충분.
 
 ## 핵심 설계 원칙
@@ -26,26 +26,28 @@
 - **Story Bible이 일관성의 전부다.** 첫 시드에서 JSON 바이블(인물, marker, 톤, visual_style, setting)을 생성하고, 이후 모든 생성 호출에 컨텍스트로 주입한다. 스키마와 프롬프트 3종은 `docs/03-prompts.md`에 있다 — **그대로 사용하고 임의로 재작성하지 않는다.**
 - **비주얼 스타일 고정:** "wooden artist mannequin figures on a miniature diorama stage set, soft studio lighting, shallow depth of field, cinematic color grading, 9:16 vertical". 모든 이미지 프롬프트는 이 문구로 시작한다.
 - **캐릭터는 이름이 아니라 marker(소품/색)로 이미지 프롬프트에 묘사한다.** (인형은 얼굴로 구분 불가)
-- Gemini 호출은 JSON 응답을 강제(responseMimeType: application/json)하고, 파싱 실패 시 1회 재시도한다.
+- Gemini 텍스트 호출은 `responseMimeType: application/json`과 SDK 버전에 맞는 구조화 출력 스키마를 함께 지정한다. JSON 파싱 후 필수 필드·배열·`character_id`를 검증하고, 파싱 또는 검증 실패 시 1회 재시도한다.
 
 ## 스코프 규칙 (절대 준수)
 
-하지 않는다: 로그인/계정, 실시간 멀티유저 동기화, DB, 모바일 대응, 공유/투표 기능, Veo 영상 생성(시간 남으면 마지막에만), 테스트 코드, 접근성/국제화.
+하지 않는다: 로그인/계정, 실시간 멀티유저 동기화, DB, 모바일 대응, 공유/투표 기능, 이미지 시드, Veo 영상 생성(시간 남으면 마지막에만), 대규모 테스트 코드, 접근성/국제화.
 
 ## 목업 자산 (demo-assets/)
 
-`demo-assets/mock-scenes.json`은 실제 스키마와 동일한 목업 데이터(바이블 + 씬 4개), SVG 파일들은 목업 컷 이미지다. **API 연동 전에 UI를 만들 때 이 데이터로 먼저 렌더링을 완성**하고, 그 다음 실제 Gemini 호출로 교체한다. `text-card-fallback.svg`는 이미지 실패 시 텍스트 카드의 디자인 레퍼런스.
+`demo-assets/mock-scenes.json`은 정규화된 클라이언트 씬 형태의 목업 데이터(바이블 + 씬 4개), SVG 파일들은 목업 컷 이미지다. 목업 컷은 `image_prompt`와 `/demo-assets/...` 형식의 `image_url`을 함께 가지며, 실제 API 컷은 생성 전 `image_url: null`로 정규화한다. **API 연동 전에 이 데이터로 전체 시드 → 씬 → 릴 UI를 완성**하고, 그 다음 실제 Gemini 호출로 교체한다. `text-card-fallback.svg`는 이미지 실패 시 텍스트 카드의 디자인 레퍼런스.
 
 ## 장애 대응
 
 - 이미지 생성 실패 → 1회 재시도 → 실패 시 해당 컷을 **텍스트 카드**(어두운 배경 + 내레이션 타이포, `demo-assets/text-card-fallback.svg` 스타일)로 렌더한다. 절대 빈 화면/에러를 노출하지 않는다.
+- API 키 누락, 텍스트 모델/쿼터/네트워크 오류, 바이블·씬 검증 실패 → 1회 재시도 후 **DEMO_MODE**로 전환해 `mock-scenes.json`으로 전체 흐름을 유지한다. 요청에는 타임아웃을 둔다.
+- `VITE_DEMO_MODE=true`이면 처음부터 API를 호출하지 않고 목업만 사용한다. 발표 직전 강제 폴백 테스트에 사용한다.
 - 모든 생성 호출에 로딩 상태 표시 ("촬영 중..." 같은 콘셉트 문구).
 
 ## 마일스톤 (킥오프 프롬프트는 docs/04-kickoff-prompts.md)
 
-- **M1 (0–20분):** 프로젝트 스캐폴드 + 시드 입력 → 바이블 → 씬 1개 → 이미지 1장이 한 번 도는 것
-- **M2 (20–60분):** 턴 릴레이 UI, story_summary 갱신, 씬 히스토리 누적
-- **M3 (60–90분):** 완성 릴 재생 화면(자동 넘김 + 자막), 텍스트 카드 폴백, 스타일 폴리시
+- **M1 (0–30분):** 프로젝트 스캐폴드 + 목업 기반 전체 화면 + 시드 → 바이블 → 씬 1개 → 이미지 1장 실제 호출
+- **M2 (30–65분):** 턴 릴레이 UI, story_summary 갱신, 씬 히스토리 누적
+- **M3 (65–90분):** 완성 릴 재생 화면(자동 넘김 + 자막), DEMO_MODE·텍스트 카드 폴백, 스타일 폴리시
 - **M4 (90–120분):** 사람 작업 — 데모 촬영, README, 제출. 에이전트는 요청받은 버그 수정만 한다
 
-각 마일스톤 완료 시 동작 확인 가능한 상태여야 하며, 즉시 커밋한다.
+각 마일스톤 완료 시 동작 확인 가능한 상태여야 하며, 즉시 커밋한다. 매 커밋 전 `npm run build`를 통과시키고, M3에서는 `VITE_DEMO_MODE=true` 전체 흐름과 강제 이미지 실패 폴백도 확인한다.

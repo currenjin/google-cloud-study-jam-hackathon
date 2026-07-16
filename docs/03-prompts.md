@@ -26,6 +26,34 @@
 
 핵심: **`marker`** — 인형은 얼굴로 구분이 안 되므로 소품·색깔로 캐릭터를 식별한다. 이미지 프롬프트에서 캐릭터는 항상 marker로 묘사.
 
+## 구조화 출력과 정규화 규칙
+
+- `responseMimeType: application/json`만으로 끝내지 않는다. 설치한 `@google/genai` 버전의 공식 방식에 맞춰 아래 Bible/Scene 필드를 구조화 출력 스키마로 지정한다.
+- 파싱 후 런타임 검증을 한 번 더 한다. 문자열 필수 필드, 배열 여부, 컷 정확히 1개, 대사 `character_id`를 확인한다.
+- `character_id`는 기존 Bible의 인물이거나 같은 씬의 `new_characters`에 있어야 한다. 새 인물은 검증 후 Bible의 `characters`에 합친다.
+- 목업과 실제 API 응답은 아래 클라이언트 형태로 정규화한다.
+
+```json
+{
+  "scene_title": "N화 제목",
+  "narration": "내레이션",
+  "dialogues": [{"character_id": "mina", "line": "대사"}],
+  "new_characters": [],
+  "cuts": [
+    {
+      "image_prompt": "영어 이미지 프롬프트",
+      "image_url": null
+    }
+  ],
+  "updated_story_summary": "갱신된 전체 줄거리",
+  "user_twist": "사용자가 입력한 전개"
+}
+```
+
+- Gemini Scene 응답에는 `image_url`과 `user_twist`를 요구하지 않는다. 클라이언트가 각각 `null`과 원래 사용자 입력으로 채운다.
+- 목업은 `image_url`에 `/demo-assets/cut-01-contract.svg`처럼 `/demo-assets/`부터 시작하는 경로를 넣는다.
+- 이미지 생성 성공 시 `image_url`만 blob URL로 교체한다. base64/blob은 localStorage에 저장하지 않는다.
+
 ## 프롬프트 1: Story Bible 생성 (게임 시작 시 1회)
 
 ```
@@ -53,9 +81,18 @@
 {
   "scene_title": "N화 제목",
   "narration": "내레이션 1~2문장",
-  "dialogues": [{"character_id": "...", "line": "대사"}],   // 2~4줄
+  "dialogues": [{"character_id": "mina", "line": "짧은 대사"}],
+  "new_characters": [
+    {
+      "id": "새 인물 ID",
+      "name": "새 인물 이름",
+      "marker": "기존 인물과 겹치지 않는 소품/색",
+      "personality": "성격",
+      "speech_style": "말투"
+    }
+  ],
   "cuts": [
-    {"image_prompt": "컷 이미지 프롬프트 (영어)"}          // 1~2개
+    {"image_prompt": "컷 이미지 프롬프트 (영어)"}
   ],
   "updated_story_summary": "갱신된 전체 줄거리 요약"
 }
@@ -65,6 +102,9 @@
 - image_prompt는 반드시 Story Bible의 visual_style 문구로 시작한다.
 - image_prompt에서 캐릭터는 이름이 아니라 marker로 묘사한다.
   (예: "a wooden mannequin figure wearing a red scarf" — 절대 사람 이름 사용 금지)
+- 새 전개가 기존 Bible에 없는 인물을 요구할 때만 new_characters에 1명을 추가한다. 아니면 빈 배열을 반환한다.
+- dialogues의 character_id는 기존 Bible 또는 new_characters의 id만 사용한다.
+- cuts는 1개만 생성한다. 120분 MVP에서는 장면당 여러 이미지 금지.
 - 대사는 짧고 자막으로 얹기 좋게.
 
 Story Bible: {bible_json}
@@ -74,8 +114,8 @@ Story Bible: {bible_json}
 
 ## 프롬프트 3: 이미지 생성 (Nano Banana / Gemini 이미지)
 
-씬 생성이 뽑아준 `cuts[].image_prompt`를 **그대로** 전달. 종횡비 9:16 고정.
-스타일 프리픽스가 이미 박혀 있으므로 추가 가공 불필요.
+씬 생성이 뽑아준 `cuts[].image_prompt`를 **그대로** 전달. 종횡비 9:16 고정. 응답의 첫 part를 이미지라고 가정하지 말고, `inlineData`와 MIME type이 실제로 있는 part를 찾는다. candidate 없음, 이미지 part 없음, safety block은 생성 실패로 처리한다.
+스타일 프리픽스가 이미 박혀 있으므로 추가 가공 불필요. 이미지 실패는 1회 재시도 후 텍스트 카드로 대체한다.
 
 (옵션) Veo 시네마틱 모드: 같은 image_prompt에 카메라 움직임 한 문장 추가
 (예: "slow push-in on the mannequin's face") — 클립당 1–3분 소요, 데모 영상용은 미리 생성.
