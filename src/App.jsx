@@ -123,19 +123,34 @@ function App() {
       sceneData.user_twist = '이야기를 시작한다';
       sceneData.image_url = null;
       
-      // Step 3: 이미지 생성
+      // Step 3: 이미지 및 비디오(Veo) 생성
       if (sceneData.cuts && sceneData.cuts.length > 0 && sceneData.cuts[0].image_prompt) {
         setLoadingText('디렉터 컷 인화 중... (이미지 생성)');
         try {
+          let imageUrl = '';
           if (uploadedImage) {
+            imageUrl = uploadedImage;
             sceneData.cuts[0].image_url = uploadedImage;
           } else {
-            const imageUrl = await generateImage(sceneData.cuts[0].image_prompt);
+            imageUrl = await generateImage(sceneData.cuts[0].image_prompt);
             sceneData.cuts[0].image_url = imageUrl;
           }
+
+          // 🔥 Real-time Veo Video Generation for 1st Scene
+          if (imageUrl) {
+            setLoadingText('Veo 촬영 감독 가동 중... (실제 비디오 클립 생성 중 - 약 15~20초 소요)');
+            try {
+              const videoUrl = await generateHighlightVideo(sceneData.cuts[0].image_prompt, imageUrl);
+              sceneData.cuts[0].video_url = videoUrl;
+            } catch (veoErr) {
+              console.error('Failed to generate initial Veo video', veoErr);
+              sceneData.cuts[0].video_url = null;
+            }
+          }
         } catch (imgError) {
-          console.error('Image generation failed, falling back to text card', imgError);
+          console.error('Image or video generation failed, falling back to text card', imgError);
           sceneData.cuts[0].image_url = null;
+          sceneData.cuts[0].video_url = null;
         }
       }
 
@@ -201,15 +216,28 @@ function App() {
       nextSceneData.user_twist = userTwist;
       nextSceneData.image_url = null;
 
-      // Step 2: 이미지 생성
+      // Step 2: 이미지 및 비디오(Veo) 생성
       if (nextSceneData.cuts && nextSceneData.cuts.length > 0 && nextSceneData.cuts[0].image_prompt) {
         setLoadingText('스튜디오 촬영 중... (이미지 생성)');
         try {
           const imageUrl = await generateImage(nextSceneData.cuts[0].image_prompt);
           nextSceneData.cuts[0].image_url = imageUrl;
+
+          // 🔥 Real-time Veo Video Generation for Next Scene
+          if (imageUrl) {
+            setLoadingText('Veo 촬영 감독 가동 중... (실제 비디오 클립 생성 중 - 약 15~20초 소요)');
+            try {
+              const videoUrl = await generateHighlightVideo(nextSceneData.cuts[0].image_prompt, imageUrl);
+              nextSceneData.cuts[0].video_url = videoUrl;
+            } catch (veoErr) {
+              console.error('Failed to generate subsequent Veo video', veoErr);
+              nextSceneData.cuts[0].video_url = null;
+            }
+          }
         } catch (imgError) {
-          console.error('Image generation failed, falling back to text card', imgError);
+          console.error('Image or video generation failed, falling back to text card', imgError);
           nextSceneData.cuts[0].image_url = null;
+          nextSceneData.cuts[0].video_url = null;
         }
       }
 
@@ -936,7 +964,36 @@ function App() {
         ctx.clearRect(0, 0, 720, 1280);
 
         // 1. 배경 이미지 그리기
-        if (loadedImages[currentSceneIdx]) {
+        // 비디오 재생 제어
+        Object.keys(loadedVideos).forEach(idx => {
+          const video = loadedVideos[idx];
+          if (Number(idx) === currentSceneIdx) {
+            if (video.paused) {
+              video.play().catch(e => console.error("Video play error:", e));
+            }
+          } else {
+            if (!video.paused) {
+              video.pause();
+              video.currentTime = 0;
+            }
+          }
+        });
+
+        if (loadedVideos[currentSceneIdx]) {
+          const video = loadedVideos[currentSceneIdx];
+          const w = 720;
+          const h = 1280;
+
+          ctx.save();
+          ctx.translate(360, 640);
+          ctx.drawImage(video, -w / 2, -h / 2, w, h);
+          ctx.restore();
+
+          // 무대 느낌의 암전 처리 오버레이 (실사 스타일이면 더 연하게 0.22, 목각인형이면 0.42)
+          const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
+          ctx.fillStyle = isRealStyle ? 'rgba(0, 0, 0, 0.22)' : 'rgba(0, 0, 0, 0.42)';
+          ctx.fillRect(0, 0, 720, 1280);
+        } else if (loadedImages[currentSceneIdx]) {
           const img = loadedImages[currentSceneIdx];
           
           const scale = 1.0 + progressPct * 0.12; // 12% 줌인
@@ -1117,6 +1174,14 @@ function App() {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
+      // 모든 재생 중인 비디오 정지 및 리소스 클린업
+      Object.values(loadedVideos).forEach(video => {
+        try {
+          video.pause();
+          video.src = "";
+          video.load();
+        } catch (e) {}
+      });
     };
   }, [stage, scenes, bible]);
 
