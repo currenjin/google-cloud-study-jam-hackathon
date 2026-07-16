@@ -1,78 +1,38 @@
-# Google Cloud Study Jam Hackathon
+# Google Cloud Study Jam Hackathon — 릴드 (Reels Drama)
 
-Google Cloud Study Jam Hackathon 준비용 private repo.
+2026-07-16 (목) 12:00–17:00 · 서울신라호텔 본관 3층 오키드룸 · 실제 개발 시간 **120분** (13:20–15:20)
 
-- 행사: 2026-07-16 12:00-17:00 KST
-- 실제 해커톤: 13:20-15:20, 120분
-- 상태: 스터디잼 통과, 해커톤 참석 확정
-- 전략: 당일 새로 배우지 않고, 미리 만든 작은 템플릿을 120분 안에 조립/데모한다.
+## 프로젝트: 릴드 (Reels Drama)
 
-## 빠른 시작
+프롬프트나 이미지를 시드로 주면, 여러 사람이 **릴레이로 한 줄씩 전개를 이어가며** AI가 숏폼 드라마를 만들어주는 참여형 엔터테인먼트 앱.
 
-먼저 해커톤 학습 패키지부터 읽는다.
+- **트랙:** Gemini in Entertainment
+- **비주얼 콘셉트:** 목각인형(artist mannequin) 디오라마 스타일 — 캐릭터 일관성 문제를 해결하면서 그 자체로 밈 감성
+- **핵심 기믹:** Story Bible(JSON)로 인물·배경·톤을 고정하고, 턴마다 Gemini가 각본 + Nano Banana가 컷 이미지를 생성
 
-- [`docs/google-skills-boost-credit-plan.md`](docs/google-skills-boost-credit-plan.md): 남은 Google Skills Boost 크레딧으로 먼저 할 실습 우선순위
-- [`docs/no-billing-study-session.md`](docs/no-billing-study-session.md): 과금 없이 바로 따라 하는 60분 기술 공부 세션
-- [`docs/winning-case-analysis-and-recommendation.md`](docs/winning-case-analysis-and-recommendation.md): 수상 케이스 분석 + 다니엘 최종 추천안
-- [`docs/winning-strategy.md`](docs/winning-strategy.md): 수상 목표 피벗 전략
-- [`docs/hackathon-learning-pack.md`](docs/hackathon-learning-pack.md): 전체 학습 진입점
-- [`docs/concepts-practices-examples.md`](docs/concepts-practices-examples.md): 개념/실습/활용 예시
-- [`docs/demo-playbook.md`](docs/demo-playbook.md): 발표/데모/fallback
+## 문서
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-streamlit run src/app.py
-```
+| 문서 | 내용 |
+|---|---|
+| [docs/00-before-hackathon.md](docs/00-before-hackathon.md) | 해커톤 시작 전에 해놓을 것 (환경 세팅, 로지스틱스) |
+| [docs/01-hackathon-plan.md](docs/01-hackathon-plan.md) | 해커톤에서 해야 할 것 (120분 타임박스 실행 계획) |
+| [docs/02-winning-strategy.md](docs/02-winning-strategy.md) | 수상을 위해 준비해야 할 것 (심사 기준 공략, 제출물, 발표) |
+| [docs/03-prompts.md](docs/03-prompts.md) | Story Bible 스키마, 프롬프트 3종, 데모 시나리오 (현장 복붙용) |
 
-## 디렉토리
+## ⚠️ 잊지 말 것
 
-```text
-docs/
-  google-skills-boost-credit-plan.md # 남은 Skills Boost 크레딧 사용 우선순위
-  winning-strategy.md                # 수상 목표 피벗 전략
-  hackathon-learning-pack.md          # 학습 패키지 진입점
-  concepts-practices-examples.md      # 개념/실습/활용 예시
-  demo-playbook.md                    # 샘플 입력/발표/fallback
-  plan.md                             # 전체 준비 플랜
-  free-study-topics.md                # 과금 없이 공부할 주제/순서
-  studyjam-hackathon-guide.md         # 진행 예상/무과금 학습 가이드
-  judging-story.md                    # 발표/심사 스토리
-  idea-bank.md                        # 아이디어 후보
-stages/
-  00-gcp-warmup/          # GCP/Cloud Shell 감각 회복
-  01-gemini-api/          # Gemini API 최소 호출
-  02-streamlit-mvp/       # 화면 있는 MVP
-  03-cloud-run-deploy/    # Cloud Run 배포
-  04-demo-script/         # 3분 데모/발표
-  05-hackathon-rehearsal/ # 120분 리허설
-src/
-  app.py                  # 해커톤 당일 사용할 최소 Streamlit 앱
-  gemini_client.py        # Gemini 호출 + fallback
-  study_buddy.py          # 프롬프트/fallback 생성 로직
-```
+- **이 레포는 기획/준비용.** 규정상 프로젝트는 해커톤 현장에서 새로 개발해야 하므로, 실제 코드는 **당일 새 public repo를 만들어서** 작업한다.
+- 제공되는 @gcplab.me 계정과 GCP 프로젝트는 **행사 종료 즉시 삭제**된다. 코드는 수시로 GitHub에 푸시.
+- 프로젝트 내 자율형 AI 에이전트(OpenClaw 등) 사용 금지.
 
-## 현재 1순위 MVP
+## 제출물 (해커톤 종료 전까지)
 
-**Study Jam Buddy: Hackathon Co-pilot**
+1. Project Description (프로젝트 소개)
+2. Public GitHub Repository (소스코드)
+3. Demo Video (YouTube / Google Drive 링크)
 
-Google Cloud Study Jam 학습자가 배운 내용을 입력하면 Gemini가 해커톤 아이디어, 120분 MVP 범위, Google Cloud 아키텍처, 구현 순서, 3분 발표 대본, fallback 전략을 만들어주는 AI 실행 코치.
+## 심사 기준
 
-왜 좋나:
-- 행사 맥락과 직접 연결됨: Study Jam 학습 → 해커톤 실행 전환
-- 120분 안에 만들 수 있음
-- Gemini 데모가 명확함: 비정형 학습/관심 정보 → 구조화된 MVP/발표 계획
-- 발표 스토리가 선명함: 배운 기술을 실제 제출 가능한 해커톤 결과물로 바꿔줌
-- API/배포 실패 시 fallback 데모가 가능함
-
-## 데모 출력
-
-- 추천 아이디어 3개 + 최종 1개
-- 10초 문제 정의
-- 120분 MVP 범위
-- Google Cloud 아키텍처
-- 구현 순서
-- 3분 발표 대본
-- fallback 데모 플랜
+- **Technical Demo** — 에러 없이 정상 동작하는가
+- **Impact** — 실제 문제를 해결하는가, 문제가 충분히 중요한가
+- **Creativity** — 기존에 없던 새로운 접근인가
