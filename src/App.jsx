@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import mockData from '../demo-assets/mock-scenes.json'
-import { generateStoryBible, generateNextScene, generateImage } from './gemini'
+import { generateStoryBible, generateNextScene, generateImage, generateHighlightVideo } from './gemini'
 
 const LOCAL_STORAGE_VERSION = 'v1'
 
@@ -32,7 +32,8 @@ function App() {
   const [isCompilingVideo, setIsCompilingVideo] = useState(false)
   const [recordedVideoUrl, setRecordedVideoUrl] = useState(null)
   const [videoCompilationText, setVideoCompilationText] = useState('')
-  const [isVeoMode, setIsVeoMode] = useState(false)
+  const [isGeneratingVeo, setIsGeneratingVeo] = useState(false)
+  const [veoVideoUrl, setVeoVideoUrl] = useState(null)
   const [uploadedImage, setUploadedImage] = useState(null)
   const [uploadedImagePreview, setUploadedImagePreview] = useState(null)
 
@@ -256,9 +257,33 @@ function App() {
       setUserTwist('')
       setUploadedImage(null)
       setUploadedImagePreview(null)
+      setIsGeneratingVeo(false)
+      setVeoVideoUrl(null)
       localStorage.removeItem('reels_drama_state')
     }
   }
+
+  const handleGenerateVeoHighlight = async () => {
+    if (scenes.length === 0) return;
+    const lastScene = scenes[scenes.length - 1];
+    if (!lastScene.cuts || lastScene.cuts.length === 0) return;
+
+    const lastCut = lastScene.cuts[0];
+    const imagePrompt = lastCut.image_prompt;
+    const imageBase64 = lastCut.image_url;
+
+    setIsGeneratingVeo(true);
+    setVeoVideoUrl(null);
+
+    try {
+      const videoUrl = await generateHighlightVideo(imagePrompt, imageBase64);
+      setVeoVideoUrl(videoUrl);
+    } catch (err) {
+      console.error('Failed to generate Veo highlight video:', err);
+    } finally {
+      setIsGeneratingVeo(false);
+    }
+  };
 
   // M4: Canvas 비디오 렌더링 및 MediaRecorder 레코딩 로직
   useEffect(() => {
@@ -281,23 +306,7 @@ function App() {
     const startCanvasReels = async () => {
       setIsCompilingVideo(true);
 
-      if (isVeoMode) {
-        setVideoCompilationText('🌐 [1/4] Google Vertex AI: veo-3.1-generate-001 모델 가동...');
-        await new Promise(resolve => setTimeout(resolve, 800));
-        if (!active) return;
-        setVideoCompilationText('🤖 [2/4] Veo Engine: 텍스트 및 레퍼런스 이미지 물리 벡터 연산 분석...');
-        await new Promise(resolve => setTimeout(resolve, 800));
-        if (!active) return;
-        const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
-        setVideoCompilationText(`🎨 [3/4] Rendering: 광학 흐름(Optical Flow) 및 ${isRealStyle ? '실사 배우 시네마틱 비디오' : '목각인형 3D 모션'} 프레임 합성...`);
-        await new Promise(resolve => setTimeout(resolve, 800));
-        if (!active) return;
-        setVideoCompilationText('🔒 [4/4] Security: Google SynthID 디지털 불포화 워터마크 주입 완료!');
-        await new Promise(resolve => setTimeout(resolve, 600));
-        if (!active) return;
-      } else {
-        setVideoCompilationText('🎬 비디오 상영용 원본 프레임 인화 중 (이미지 다운로드)...');
-      }
+      setVideoCompilationText('🎬 비디오 상영용 원본 프레임 인화 중 (이미지 다운로드)...');
 
       // 1. 모든 에피소드 이미지 프리로드 (CORS 회피용 crossOrigin 적용)
       const loadedImages = {};
@@ -930,24 +939,12 @@ function App() {
         if (loadedImages[currentSceneIdx]) {
           const img = loadedImages[currentSceneIdx];
           
-          let scale = 1.0 + progressPct * 0.12; // 12% 줌인
-          let rotation = 0;
-          let dx = 0;
-          let dy = 0;
-
-          if (isVeoMode) {
-            scale = 1.05 + Math.sin(progressPct * Math.PI) * 0.08; // 부드러운 전후 3D 수축/이완 무브
-            rotation = Math.sin(progressPct * Math.PI) * 0.015;  // 흔들리는 3D 핸드헬드 기법 연출
-            dx = Math.cos(progressPct * Math.PI * 2) * 15;       // 미세 좌우 달링 효과
-            dy = Math.sin(progressPct * Math.PI * 2) * 8;        // 미세 상하 틸팅 효과
-          }
-
+          const scale = 1.0 + progressPct * 0.12; // 12% 줌인
           const w = 720 * scale;
           const h = 1280 * scale;
 
           ctx.save();
-          ctx.translate(360 + dx, 640 + dy);
-          ctx.rotate(rotation);
+          ctx.translate(360, 640);
           ctx.drawImage(img, -w / 2, -h / 2, w, h);
           ctx.restore();
 
@@ -955,26 +952,6 @@ function App() {
           const isRealStyle = bible && (bible.visual_style.includes('live-action') || bible.visual_style.includes('photorealistic'));
           ctx.fillStyle = isRealStyle ? 'rgba(0, 0, 0, 0.22)' : 'rgba(0, 0, 0, 0.42)';
           ctx.fillRect(0, 0, 720, 1280);
-
-          // 🔥 Veo 모드 시네마틱 입체 라이트 파티클 효과 그리기
-          if (isVeoMode) {
-            for (let i = 0; i < 20; i++) {
-              const speedFactor = 0.3 + (i % 5) * 0.1;
-              const seedVal = i * 200 + elapsed * speedFactor;
-              const px = (seedVal % 800) - 40;
-              const py = ((i * 64 + elapsed * 0.15) % 1320) - 20;
-              const size = 2 + (i % 4) * 2;
-              const opacity = 0.15 + Math.sin(elapsed * 0.002 + i) * 0.1;
-
-              ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-              ctx.shadowColor = 'rgba(255, 46, 147, 0.4)';
-              ctx.shadowBlur = 10;
-              ctx.beginPath();
-              ctx.arc(px, py, size, 0, Math.PI * 2);
-              ctx.fill();
-            }
-            ctx.shadowBlur = 0; // 그림자 초기화
-          }
 
           // 2. 실사풍 목각인형 마리오네트 액션 극장 엔진 작동! (대본 전개에 반응)
           let charA = bible.characters[0] || { id: 'char1', name: '인물A', gender: 'M' };
@@ -1121,14 +1098,6 @@ function App() {
           wrapText(scene.narration, 360, 1280 - 120, 640, 38);
         }
 
-        // 🔥 Veo 모드 전용 하단 우측 SynthID 불포화 워터마크 표시
-        if (isVeoMode) {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-          ctx.font = 'bold 15px sans-serif';
-          ctx.textAlign = 'right';
-          ctx.fillText('⚡ Veo 3.1 Powered | SynthID Watermark', 704, 1280 - 24);
-        }
-
         if (active) {
           animationFrameId = requestAnimationFrame(loop);
         }
@@ -1149,7 +1118,7 @@ function App() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [stage, scenes, bible, isVeoMode]);
+  }, [stage, scenes, bible]);
 
   if (isLoading) {
     return (
@@ -1418,17 +1387,6 @@ function App() {
               {isDemoMode && <span className="badge-demo">DEMO</span>}
             </div>
             <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div className="veo-toggle-container">
-                <span className="veo-toggle-label" style={{ fontSize: '11px', fontWeight: 'bold', color: isVeoMode ? '#FF2E93' : 'var(--text-secondary)', transition: 'color 0.2s' }}>⚡ Veo 비디오</span>
-                <label className="switch">
-                  <input 
-                    type="checkbox" 
-                    checked={isVeoMode} 
-                    onChange={(e) => setIsVeoMode(e.target.checked)} 
-                  />
-                  <span className="slider round"></span>
-                </label>
-              </div>
               <button 
                 type="button" 
                 className="btn-play-reels"
@@ -1649,6 +1607,54 @@ function App() {
                   </div>
                 ) : (
                   <p className="compiling-text">🎥 동영상 인코딩 중...</p>
+                )}
+
+                {isGeneratingVeo && (
+                  <div className="veo-generating-loader" style={{ margin: '20px 0', padding: '16px', background: 'rgba(255,46,147,0.1)', borderRadius: '12px', border: '1px dashed #FF2E93', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
+                    <div className="spinner" style={{ borderColor: '#FF2E93', borderTopColor: 'transparent', width: '24px', height: '24px', borderWidth: '3px' }}></div>
+                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: '#FF2E93' }}>🎬 Veo가 촬영 중... (1~2분 소요)</p>
+                    <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)' }}>마지막 장면 프레임과 물리 벡터 분석 중입니다.</p>
+                  </div>
+                )}
+
+                {veoVideoUrl && (
+                  <div className="veo-video-box" style={{ margin: '20px 0', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', width: '100%', boxSizing: 'border-box' }}>
+                    <p style={{ margin: '0 0 10px 0', fontSize: '13px', fontWeight: 'bold', color: '#FF2E93', textAlign: 'left' }}>✨ Veo AI 하이라이트 영상 (움직이는 비디오):</p>
+                    <video 
+                      src={veoVideoUrl} 
+                      controls 
+                      autoPlay 
+                      loop 
+                      style={{ width: '100%', borderRadius: '8px', boxShadow: '0 0 15px rgba(255, 46, 147, 0.4)' }}
+                    />
+                  </div>
+                )}
+
+                {!isGeneratingVeo && !veoVideoUrl && (
+                  <button 
+                    type="button"
+                    style={{
+                      background: 'linear-gradient(135deg, #FF2E93 0%, #FF8E53 100%)',
+                      boxShadow: '0 0 15px rgba(255, 46, 147, 0.5)',
+                      border: 'none',
+                      height: '44px',
+                      borderRadius: '8px',
+                      fontWeight: 'bold',
+                      fontSize: '13px',
+                      color: 'white',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      marginTop: '20px',
+                      transition: 'opacity 0.2s'
+                    }}
+                    onClick={handleGenerateVeoHighlight}
+                  >
+                    ✨ 하이라이트를 영상으로 (Veo AI)
+                  </button>
                 )}
 
                 <div className="ending-button-group" style={{ marginTop: '20px' }}>
