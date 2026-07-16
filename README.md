@@ -17,7 +17,7 @@
 1. Antigravity 로그인 — **프로젝트 ID 지정 필수** (Business Plan 적용)
 2. 이 레포 클론 → Antigravity로 폴더 열기
 3. `cp .env.example .env` → AI Studio에서 받은 임시 API 키 입력 (`.env` 커밋 금지)
-4. [docs/04-kickoff-prompts.md](docs/04-kickoff-prompts.md)의 **M1 프롬프트를 그대로 붙여넣기** → 개발 시작
+4. [docs/04-kickoff-prompts.md](docs/04-kickoff-prompts.md) 최상단의 **⭐ 전체 위임 프롬프트 하나를 붙여넣기** → M1→M3+ 자동 진행 (단계별로 가려면 M1~M3 프롬프트 사용)
 
 ## 문서
 
