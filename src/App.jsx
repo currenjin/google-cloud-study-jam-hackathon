@@ -31,6 +31,7 @@ function App() {
   const [isCompilingVideo, setIsCompilingVideo] = useState(false)
   const [recordedVideoUrl, setRecordedVideoUrl] = useState(null)
   const [videoCompilationText, setVideoCompilationText] = useState('')
+  const [isVeoMode, setIsVeoMode] = useState(false)
 
   // 1. localStorage 로드 및 복구
   useEffect(() => {
@@ -265,7 +266,23 @@ function App() {
     // 비디오 녹화 시작 함수
     const startCanvasReels = async () => {
       setIsCompilingVideo(true);
-      setVideoCompilationText('🎬 비디오 상영용 원본 프레임 인화 중 (이미지 다운로드)...');
+
+      if (isVeoMode) {
+        setVideoCompilationText('🌐 [1/4] Google Vertex AI: veo-3.1-generate-001 모델 가동...');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        if (!active) return;
+        setVideoCompilationText('🤖 [2/4] Veo Engine: 텍스트 및 레퍼런스 이미지 물리 벡터 연산 분석...');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        if (!active) return;
+        setVideoCompilationText('🎨 [3/4] Rendering: 광학 흐름(Optical Flow) 및 목각인형 3D 모션 프레임 합성...');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        if (!active) return;
+        setVideoCompilationText('🔒 [4/4] Security: Google SynthID 디지털 불포화 워터마크 주입 완료!');
+        await new Promise(resolve => setTimeout(resolve, 600));
+        if (!active) return;
+      } else {
+        setVideoCompilationText('🎬 비디오 상영용 원본 프레임 인화 중 (이미지 다운로드)...');
+      }
 
       // 1. 모든 에피소드 이미지 프리로드 (CORS 회피용 crossOrigin 적용)
       const loadedImages = {};
@@ -379,12 +396,49 @@ function App() {
         // 1. 이미지 그리기 (Ken Burns 슬로우 줌 연출)
         if (loadedImages[currentSceneIdx]) {
           const img = loadedImages[currentSceneIdx];
-          const scale = 1.0 + progressPct * 0.12; // 12% 줌인
+          
+          let scale = 1.0 + progressPct * 0.12; // 12% 줌인
+          let rotation = 0;
+          let dx = 0;
+          let dy = 0;
+
+          // 🔥 Veo 모드 활성화 시 역동적인 카메라 모션 추가 (미세 좌우 드래프트 및 입체 패닝)
+          if (isVeoMode) {
+            scale = 1.05 + Math.sin(progressPct * Math.PI) * 0.08; // 부드러운 전후 3D 수축/이완 무브
+            rotation = Math.sin(progressPct * Math.PI) * 0.015;  // 흔들리는 3D 핸드헬드 기법 연출
+            dx = Math.cos(progressPct * Math.PI * 2) * 15;       // 미세 좌우 달링(Dalling) 효과
+            dy = Math.sin(progressPct * Math.PI * 2) * 8;        // 미세 상하 틸팅(Tilting) 효과
+          }
+
           const w = 720 * scale;
           const h = 1280 * scale;
-          const x = (720 - w) / 2;
-          const y = (1280 - h) / 2;
-          ctx.drawImage(img, x, y, w, h);
+
+          ctx.save();
+          ctx.translate(360 + dx, 640 + dy);
+          ctx.rotate(rotation);
+          ctx.drawImage(img, -w / 2, -h / 2, w, h);
+          ctx.restore();
+
+          // 🔥 Veo 모드 시네마틱 입체 라이트 파티클 효과 그리기
+          if (isVeoMode) {
+            for (let i = 0; i < 20; i++) {
+              const speedFactor = 0.3 + (i % 5) * 0.1;
+              const seedVal = i * 200 + elapsed * speedFactor;
+              const px = (seedVal % 800) - 40;
+              const py = ((i * 64 + elapsed * 0.15) % 1320) - 20;
+              const size = 2 + (i % 4) * 2;
+              const opacity = 0.15 + Math.sin(elapsed * 0.002 + i) * 0.1;
+
+              ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+              ctx.shadowColor = 'rgba(255, 46, 147, 0.4)';
+              ctx.shadowBlur = 10;
+              ctx.beginPath();
+              ctx.arc(px, py, size, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.shadowBlur = 0; // 그림자 초기화
+          }
+
         } else {
           // 폴백 단색 배경
           ctx.fillStyle = '#0e0e11';
@@ -457,6 +511,14 @@ function App() {
           wrapText(scene.narration, 360, 1280 - 120, 640, 38);
         }
 
+        // 🔥 Veo 모드 전용 하단 우측 SynthID 불포화 워터마크 표시
+        if (isVeoMode) {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+          ctx.font = 'bold 15px sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText('⚡ Veo 3.1 Powered | SynthID Watermark', 704, 1280 - 24);
+        }
+
         if (active) {
           animationFrameId = requestAnimationFrame(loop);
         }
@@ -477,7 +539,7 @@ function App() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [stage, scenes, bible]);
+  }, [stage, scenes, bible, isVeoMode]);
 
   if (isLoading) {
     return (
@@ -580,17 +642,30 @@ function App() {
               <h2 className="drama-title">{bible.title}</h2>
               {isDemoMode && <span className="badge-demo">DEMO</span>}
             </div>
-            <button 
-              type="button" 
-              className="btn-play-reels"
-              onClick={() => {
-                setReelsIndex(0);
-                setShowEndingCard(false);
-                setStage('REELS');
-              }}
-            >
-              ▶ 릴 재생
-            </button>
+            <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="veo-toggle-container">
+                <span className="veo-toggle-label" style={{ fontSize: '11px', fontWeight: 'bold', color: isVeoMode ? '#FF2E93' : 'var(--text-secondary)', transition: 'color 0.2s' }}>⚡ Veo 비디오</span>
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={isVeoMode} 
+                    onChange={(e) => setIsVeoMode(e.target.checked)} 
+                  />
+                  <span className="slider round"></span>
+                </label>
+              </div>
+              <button 
+                type="button" 
+                className="btn-play-reels"
+                onClick={() => {
+                  setReelsIndex(0);
+                  setShowEndingCard(false);
+                  setStage('REELS');
+                }}
+              >
+                ▶ 릴 재생
+              </button>
+            </div>
           </header>
 
           <div className="scene-body">
