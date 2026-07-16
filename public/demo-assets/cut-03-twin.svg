@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <defs>
+    <radialGradient id="spot3" cx="50%" cy="36%" r="72%">
+      <stop offset="0%" stop-color="#37301f"/>
+      <stop offset="100%" stop-color="#100e0a"/>
+    </radialGradient>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#spot3)"/>
+  <ellipse cx="540" cy="1450" rx="460" ry="120" fill="#1e1913"/>
+  <!-- 번개 효과 -->
+  <polygon points="540,240 500,420 560,420 490,620" fill="#f5d76e" opacity="0.8"/>
+  <!-- 인형 B: 파란 앞치마 (준) -->
+  <g stroke="#c89b6a" stroke-width="22" stroke-linecap="round" fill="none">
+    <circle cx="320" cy="780" r="70" fill="#c89b6a" stroke="none"/>
+    <line x1="320" y1="880" x2="320" y2="1120"/>
+    <line x1="320" y1="940" x2="230" y2="1050"/>
+    <line x1="320" y1="940" x2="420" y2="1020"/>
+  </g>
+  <rect x="260" y="900" width="120" height="180" rx="16" fill="#2c5f8a"/>
+  <!-- 인형 B2: 쌍둥이, 똑같은 파란 앞치마 + 선글라스 -->
+  <g stroke="#c89b6a" stroke-width="22" stroke-linecap="round" fill="none">
+    <circle cx="760" cy="780" r="70" fill="#c89b6a" stroke="none"/>
+    <line x1="760" y1="880" x2="760" y2="1120"/>
+    <line x1="760" y1="940" x2="860" y2="1050"/>
+    <line x1="760" y1="940" x2="660" y2="1020"/>
+  </g>
+  <rect x="700" y="900" width="120" height="180" rx="16" fill="#2c5f8a"/>
+  <rect x="700" y="755" width="120" height="36" rx="18" fill="#111111"/> <!-- 선글라스 -->
+  <!-- VS -->
+  <text x="540" y="1000" font-family="sans-serif" font-size="96" font-weight="bold" fill="#f5d76e" text-anchor="middle" opacity="0.9">VS</text>
+  <!-- 자막 -->
+  <rect x="60" y="1580" width="960" height="220" rx="24" fill="#000000" opacity="0.65"/>
+  <text x="540" y="1665" font-family="sans-serif" font-size="52" font-weight="bold" fill="#ffffff" text-anchor="middle">준2: "계약자는 나야."</text>
+  <text x="540" y="1745" font-family="sans-serif" font-size="48" fill="#cccccc" text-anchor="middle">나레이션: 같은 앞치마가, 둘이었다.</text>
+  <text x="540" y="150" font-family="sans-serif" font-size="44" fill="#8a7358" text-anchor="middle" letter-spacing="8">— 3화. 두 개의 앞치마 —</text>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <defs>
+    <radialGradient id="spot" cx="50%" cy="38%" r="70%">
+      <stop offset="0%" stop-color="#3a3128"/>
+      <stop offset="100%" stop-color="#12100d"/>
+    </radialGradient>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#spot)"/>
+  <!-- 무대 바닥 -->
+  <ellipse cx="540" cy="1450" rx="460" ry="120" fill="#1e1913"/>
+  <!-- 편의점 카운터 -->
+  <rect x="330" y="1180" width="420" height="200" rx="12" fill="#4a3b2a"/>
+  <rect x="330" y="1160" width="420" height="30" rx="8" fill="#5c4a34"/>
+  <text x="540" y="1300" font-family="sans-serif" font-size="40" fill="#8a7358" text-anchor="middle">CU♥MART</text>
+  <!-- 인형 A: 빨간 목도리 (미나) -->
+  <g stroke="#c89b6a" stroke-width="22" stroke-linecap="round" fill="none">
+    <circle cx="330" cy="760" r="70" fill="#c89b6a" stroke="none"/>
+    <line x1="330" y1="860" x2="330" y2="1100"/>
+    <line x1="330" y1="920" x2="440" y2="1010"/>
+    <line x1="330" y1="920" x2="250" y2="1050"/>
+  </g>
+  <rect x="270" y="840" width="120" height="44" rx="22" fill="#c0392b"/>
+  <!-- 인형 B: 파란 앞치마 (준) -->
+  <g stroke="#c89b6a" stroke-width="22" stroke-linecap="round" fill="none">
+    <circle cx="750" cy="760" r="70" fill="#c89b6a" stroke="none"/>
+    <line x1="750" y1="860" x2="750" y2="1100"/>
+    <line x1="750" y1="920" x2="640" y2="1010"/>
+    <line x1="750" y1="920" x2="850" y2="1030"/>
+  </g>
+  <rect x="690" y="880" width="120" height="180" rx="16" fill="#2c5f8a"/>
+  <!-- 계약서 -->
+  <rect x="500" y="990" width="90" height="120" rx="6" fill="#e8dcc8" transform="rotate(-8 545 1050)"/>
+  <!-- 자막 -->
+  <rect x="60" y="1580" width="960" height="220" rx="24" fill="#000000" opacity="0.65"/>
+  <text x="540" y="1665" font-family="sans-serif" font-size="52" font-weight="bold" fill="#ffffff" text-anchor="middle">미나: "계약 기간은 3개월."</text>
+  <text x="540" y="1745" font-family="sans-serif" font-size="52" fill="#f5d76e" text-anchor="middle">"사랑에 빠지면 위약금이에요."</text>
+  <text x="540" y="150" font-family="sans-serif" font-size="44" fill="#8a7358" text-anchor="middle" letter-spacing="8">— 1화. 계약서에 도장 찍던 날 —</text>
+</svg>
