@@ -1,0 +1,524 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg-color: #0B0B0C;
+  --panel-bg: #141416;
+  --border-color: #262629;
+  --text-primary: #F3F3F5;
+  --text-secondary: #8E8E9A;
+  --primary-color: #FF2E93; /* 네온 핑크 */
+  --primary-hover: #FF55A5;
+  --secondary-color: #1E1E22;
+  --secondary-hover: #29292F;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --border-radius: 16px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: #030303;
+  color: var(--text-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* 9:16 모바일 폰 뷰포트 시뮬레이션 */
+.app-container {
+  width: 100%;
+  max-width: 430px;
+  height: 900px;
+  max-height: 95vh;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 로딩 화면 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(11, 11, 12, 0.95);
+  z-index: 100;
+  gap: 20px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  font-size: 16px;
+  color: var(--primary-color);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 1. SEED 단계 */
+.stage-seed {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 40px 24px;
+  background: radial-gradient(circle at top, rgba(255, 46, 147, 0.15) 0%, rgba(11, 11, 12, 0) 60%);
+}
+
+.poster-wrapper {
+  text-align: center;
+  margin-top: 60px;
+}
+
+.poster-title {
+  font-size: 64px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #FF2E93 0%, #FFA24A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -2px;
+}
+
+.poster-subtitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-top: -5px;
+}
+
+.poster-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  background-color: var(--border-color);
+  color: var(--text-primary);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-top: 15px;
+  letter-spacing: 1px;
+}
+
+.input-group {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.seed-textarea {
+  width: 100%;
+  height: 120px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  color: var(--text-primary);
+  padding: 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.seed-textarea:focus {
+  border-color: var(--primary-color);
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.btn {
+  width: 100%;
+  height: 52px;
+  border-radius: var(--border-radius);
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 46, 147, 0.3);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-hover);
+}
+
+/* 2. SCENE 단계 */
+.stage-scene {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.scene-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: rgba(19, 19, 22, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-back:hover {
+  color: var(--text-primary);
+}
+
+.header-meta {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drama-title {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.badge-demo {
+  background-color: #E2AD32;
+  color: black;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.scene-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 16px;
+}
+
+/* 9:16 비주얼 포트 */
+.visual-viewport {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.cut-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.text-fallback-card {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #1b1b22 0%, #08080a 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.fallback-narration {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* 비디오 오버레이 자막 */
+.subtitle-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
+  padding: 30px 20px 20px 20px;
+}
+
+.dialogue-subtitle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.char-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-transform: uppercase;
+}
+
+.line-content {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.narration-subtitle {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #D3D3D8;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* 대본 텍스트 리스트 */
+.script-container {
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.script-scene-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.script-narration {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.dialogues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.dialogue-bubble {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background-color: var(--bg-color);
+  border-left: 3px solid var(--border-color);
+}
+
+.dialogue-bubble.mina {
+  border-left-color: var(--primary-color);
+}
+
+.dialogue-bubble.jun {
+  border-left-color: #2E86FF;
+}
+
+.speaker {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.speech-line {
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+/* scene-footer (M2 등에서 추가 사용) */
+.scene-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--panel-bg);
+}
+
+.relay-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.relay-textarea {
+  width: 100%;
+  height: 60px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-primary);
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.relay-textarea:focus {
+  border-color: var(--primary-color);
+}
+
+.btn-relay {
+  height: 44px;
+}
+
+/* 화수 네비게이션 */
+.scene-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.nav-arrow {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: opacity 0.2s;
+}
+
+.nav-arrow:disabled {
+  color: var(--text-secondary);
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.current-episode {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* 📱 핫시트 오버레이 */
+.pass-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(11, 11, 12, 0.98);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  cursor: pointer;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.pass-content {
+  text-align: center;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.overlay-icon {
+  font-size: 72px;
+  animation: bounce 2s infinite;
+}
+
+.pass-content h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.overlay-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
