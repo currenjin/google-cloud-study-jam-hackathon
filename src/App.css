@@ -990,3 +990,140 @@ input:checked + .slider:before {
 }
 
 
+
+/* ================================================================
+   GEN Z POLISH LAYER — 도파민 마이크로인터랙션 & 크리에이터 감성
+   (기존 규칙 오버라이드 전용 — 로직 무관, 안전하게 추가/제거 가능)
+   ================================================================ */
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 18px rgba(255, 46, 147, 0.45), 0 0 40px rgba(255, 46, 147, 0.12); }
+  50% { box-shadow: 0 0 30px rgba(255, 46, 147, 0.8), 0 0 70px rgba(255, 142, 83, 0.35); }
+}
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.94) translateY(10px); }
+  60% { opacity: 1; transform: scale(1.015) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-12px) rotate(3deg); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* 타이틀: 살아 움직이는 그라데이션 텍스트 */
+.poster-title {
+  background: linear-gradient(90deg, #FF2E93, #FF8E53, #B14BFF, #FF2E93);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientFlow 5s ease infinite;
+  letter-spacing: -0.02em;
+}
+
+/* 메인 CTA: 심장박동 글로우 + 누르는 맛 */
+.btn-primary {
+  background: linear-gradient(135deg, #FF2E93 0%, #FF8E53 100%);
+  border: none;
+  animation: glowPulse 2.4s ease-in-out infinite;
+  transition: transform 0.12s ease;
+}
+.btn-primary:active { transform: scale(0.96); }
+.btn-relay, .btn-play-reels { transition: transform 0.12s ease, box-shadow 0.2s ease; }
+.btn-relay:active, .btn-play-reels:active, .preset-card:active, .cheat-item:active { transform: scale(0.95); }
+
+/* 컷 이미지: 등장 팝 + 은은한 숨쉬기 줌 */
+.cut-image {
+  animation: popIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  border-radius: 14px;
+}
+.visual-viewport { overflow: hidden; border-radius: 14px; }
+
+/* 씬 본문 요소들 순차 등장 */
+.script-container { animation: popIn 0.45s ease 0.1s backwards; }
+.relay-input-area { animation: popIn 0.45s ease 0.2s backwards; }
+
+/* 자막: 틱톡 캡션 감성 — 두껍고 또렷하게 */
+.dialogue-subtitle, .narration-subtitle {
+  font-weight: 700;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+.char-name {
+  background: linear-gradient(135deg, #FF2E93, #FF8E53);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+}
+
+/* 넘겨주기 오버레이: 파티 무드 */
+.pass-overlay { backdrop-filter: blur(14px); }
+.overlay-icon { animation: floaty 1.6s ease-in-out infinite; font-size: 64px; }
+.pass-content h2 {
+  background: linear-gradient(90deg, #FF2E93, #FF8E53, #B14BFF, #FF2E93);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientFlow 4s ease infinite;
+}
+
+/* 시드 프리셋 카드: 스토리 스티커 감성 */
+.preset-card {
+  border: 1px solid rgba(255, 46, 147, 0.25);
+  transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.preset-card:hover {
+  transform: translateY(-3px) rotate(-0.5deg);
+  border-color: #FF2E93;
+  box-shadow: 0 8px 24px rgba(255, 46, 147, 0.25);
+}
+
+/* 로딩 텍스트: 시머 효과 (기다림도 콘텐츠처럼) */
+.loading-text, .compiling-text {
+  background: linear-gradient(90deg, #8E8E9A 25%, #FFFFFF 50%, #8E8E9A 75%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 1.8s linear infinite;
+  font-weight: 700;
+}
+
+/* 릴 진행바: 인스타 스토리 느낌 */
+.progress-fill { background: linear-gradient(90deg, #FF2E93, #FF8E53); border-radius: 99px; }
+.progress-segment { border-radius: 99px; overflow: hidden; }
+
+/* 엔딩 카드: 피날레 */
+.ending-title {
+  background: linear-gradient(90deg, #FF2E93, #FF8E53, #B14BFF, #FF2E93);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientFlow 5s ease infinite;
+}
+.ending-logo { animation: floaty 2s ease-in-out infinite; }
+
+/* 배경: 은은한 오로라 무드 (시드 화면) */
+.stage-seed {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(255, 46, 147, 0.13), transparent),
+    radial-gradient(ellipse 70% 50% at 90% 110%, rgba(177, 75, 255, 0.11), transparent),
+    var(--bg-color);
+}
+
+/* 접근성: 모션 민감 사용자는 애니메이션 최소화 */
+@media (prefers-reduced-motion: reduce) {
+  .poster-title, .btn-primary, .overlay-icon, .pass-content h2,
+  .loading-text, .compiling-text, .ending-title, .ending-logo { animation: none; }
+}
