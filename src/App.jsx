@@ -6,7 +6,7 @@ import { generateStoryBible, generateNextScene, generateImage } from './gemini'
 const LOCAL_STORAGE_VERSION = 'v1'
 
 function App() {
-  // stage: 'SEED' (시드 입력) | 'SCENE' (씬 턴 화면)
+  // stage: 'SEED' (시드 입력) | 'SCENE' (씬 턴 화면) | 'REELS' (릴레이 완성작 상영)
   const [stage, setStage] = useState('SEED')
   const [seed, setSeed] = useState('재벌집 막내인형과 편의점 알바인형의 계약연애')
   const [isDemoMode, setIsDemoMode] = useState(false)
@@ -21,6 +21,11 @@ function App() {
   // M2 추가 상태
   const [userTwist, setUserTwist] = useState('')
   const [showOverlay, setShowOverlay] = useState(false)
+
+  // M3 추가 상태 (릴레이 재생)
+  const [reelsIndex, setReelsIndex] = useState(0)
+  const [showEndingCard, setShowEndingCard] = useState(false)
+  const [showSceneTitleCard, setShowSceneTitleCard] = useState(true)
 
   // 1. localStorage 로드 및 복구
   useEffect(() => {
@@ -235,6 +240,34 @@ function App() {
     }
   }
 
+  // M3: 🎬 릴 재생 관련 타이머 로직
+  useEffect(() => {
+    let playTimer;
+    let cardTimer;
+
+    if (stage === 'REELS' && !showEndingCard) {
+      // 씬 전환 시 에피소드 제목 카드를 1초 동안 보여주기
+      setShowSceneTitleCard(true);
+      cardTimer = setTimeout(() => {
+        setShowSceneTitleCard(false);
+      }, 1000);
+
+      // 3.5초 후 다음 씬으로 슬라이드
+      playTimer = setTimeout(() => {
+        if (reelsIndex < scenes.length - 1) {
+          setReelsIndex(prev => prev + 1);
+        } else {
+          setShowEndingCard(true);
+        }
+      }, 3500);
+    }
+
+    return () => {
+      clearTimeout(playTimer);
+      clearTimeout(cardTimer);
+    };
+  }, [stage, reelsIndex, scenes.length, showEndingCard]);
+
   if (isLoading) {
     return (
       <div className="app-container loading-container">
@@ -305,6 +338,17 @@ function App() {
               <h2 className="drama-title">{bible.title}</h2>
               {isDemoMode && <span className="badge-demo">DEMO</span>}
             </div>
+            <button 
+              type="button" 
+              className="btn-play-reels"
+              onClick={() => {
+                setReelsIndex(0);
+                setShowEndingCard(false);
+                setStage('REELS');
+              }}
+            >
+              ▶ 릴 재생
+            </button>
           </header>
 
           <div className="scene-body">
@@ -393,6 +437,106 @@ function App() {
               </button>
             </div>
           </footer>
+        </section>
+      )}
+
+      {/* 3. 완성 릴 재생 화면 */}
+      {stage === 'REELS' && bible && scenes.length > 0 && (
+        <section className="stage-reels">
+          {/* 재생 닫기 버튼 */}
+          <button 
+            type="button" 
+            className="btn-close-reels"
+            onClick={() => setStage('SCENE')}
+          >
+            ✕
+          </button>
+
+          {/* 인스타그램 스타일 스토리 프로그레스 바 */}
+          <div className="reels-progress-bar">
+            {scenes.map((_, i) => {
+              let pct = 0;
+              if (showEndingCard) {
+                pct = 100;
+              } else if (i < reelsIndex) {
+                pct = 100;
+              } else if (i === reelsIndex) {
+                pct = 100; // 자동 애니메이션 대신 심플 채우기 혹은 커스텀 연출
+              }
+              return (
+                <div key={i} className="progress-segment">
+                  <div className="progress-fill" style={{ width: `${pct}%` }}></div>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="reels-viewport">
+            {!showEndingCard ? (
+              <>
+                {/* 컷 이미지 또는 텍스트 폴백 카드 */}
+                {scenes[reelsIndex].cuts[0].image_url ? (
+                  <img 
+                    className="reels-image animate-ken-burns" 
+                    src={scenes[reelsIndex].cuts[0].image_url} 
+                    alt={scenes[reelsIndex].cuts[0].image_prompt} 
+                  />
+                ) : (
+                  <div className="reels-text-fallback-card">
+                    <p className="fallback-narration">{scenes[reelsIndex].narration}</p>
+                  </div>
+                )}
+
+                {/* 씬 전환시 타이틀 카드 팝업 (1초 오버레이) */}
+                {showSceneTitleCard && (
+                  <div className="scene-title-overlay">
+                    <h3 className="overlay-episode-title">{scenes[reelsIndex].scene_title}</h3>
+                    <p className="overlay-episode-prompt">"{scenes[reelsIndex].user_twist}"</p>
+                  </div>
+                )}
+
+                {/* 자막 오버레이 */}
+                <div className="reels-subtitle-overlay">
+                  {scenes[reelsIndex].dialogues.length > 0 ? (
+                    <div className="reels-dialogue">
+                      <span className="reels-char-name">
+                        {bible.characters.find(c => c.id === scenes[reelsIndex].dialogues[0].character_id)?.name || '인물'}
+                      </span>
+                      <p className="reels-line-content">"{scenes[reelsIndex].dialogues[0].line}"</p>
+                    </div>
+                  ) : (
+                    <p className="reels-narration-subtitle">{scenes[reelsIndex].narration}</p>
+                  )}
+                </div>
+              </>
+            ) : (
+              /* 엔딩 카드 */
+              <div className="reels-ending-card">
+                <span className="ending-logo">🎬</span>
+                <h2 className="ending-title">오늘의 에피소드 완결!</h2>
+                <p className="ending-sub">총 {scenes.length}개의 전개가 매끄럽게 연결되었습니다.</p>
+                <div className="ending-button-group">
+                  <button 
+                    type="button" 
+                    className="btn btn-primary"
+                    onClick={() => setStage('SCENE')}
+                  >
+                    ✍️ 계속 공동 창작하기
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setReelsIndex(0);
+                      setShowEndingCard(false);
+                    }}
+                  >
+                    🔁 처음부터 다시보기
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </section>
       )}
     </div>

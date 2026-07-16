@@ -522,3 +522,247 @@ body {
   50% { transform: translateY(-10px); }
 }
 
+/* 🎬 릴 재생 관련 스타일 (M3) */
+.btn-play-reels {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-play-reels:hover {
+  background-color: var(--primary-hover);
+}
+
+.stage-reels {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  display: flex;
+  flex-direction: column;
+  z-index: 150;
+  overflow: hidden;
+}
+
+.btn-close-reels {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 210;
+  backdrop-filter: blur(5px);
+  transition: background-color 0.2s;
+}
+
+.btn-close-reels:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 인스타 스토리 스타일 프로그레스 바 */
+.reels-progress-bar {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 56px; /* 닫기 버튼 자리를 비워줌 */
+  height: 3px;
+  display: flex;
+  gap: 4px;
+  z-index: 205;
+}
+
+.progress-segment {
+  flex-grow: 1;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #FFF;
+  width: 0;
+  transition: width 3.5s linear; /* 3.5초에 맞춰 균일 재생 연출 */
+}
+
+/* 릴 재생 영역 */
+.reels-viewport {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.reels-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Ken Burns (서서히 줌인 연출) */
+.animate-ken-burns {
+  animation: kenBurns 30s ease-out infinite alternate;
+}
+
+@keyframes kenBurns {
+  0% { transform: scale(1.0); }
+  100% { transform: scale(1.15); }
+}
+
+.reels-text-fallback-card {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #1b1b22 0%, #030304 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32px;
+  text-align: center;
+}
+
+/* 씬 전환시 에피소드 안내 오버레이 */
+.scene-title-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  text-align: center;
+  z-index: 180;
+  animation: fadeOutCard 1.1s forwards;
+}
+
+.overlay-episode-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--primary-color);
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.overlay-episode-prompt {
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+@keyframes fadeOutCard {
+  0% { opacity: 1; }
+  80% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.05); pointer-events: none; }
+}
+
+/* 자막 오버레이 */
+.reels-subtitle-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.4) 60%, rgba(0, 0, 0, 0) 100%);
+  padding: 60px 24px 40px 24px;
+  z-index: 190;
+}
+
+.reels-dialogue {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.reels-char-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.reels-line-content {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+.reels-narration-subtitle {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #E2E2E8;
+  text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+/* 엔딩 카드 */
+.reels-ending-card {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top, rgba(255, 46, 147, 0.2) 0%, rgba(11, 11, 12, 0.98) 70%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 24px;
+  text-align: center;
+  z-index: 200;
+}
+
+.ending-logo {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: pulseLogo 2s infinite;
+}
+
+.ending-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.ending-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 40px;
+}
+
+.ending-button-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@keyframes pulseLogo {
+  0%, 100% { transform: scale(1.0); }
+  50% { transform: scale(1.08); }
+}
+
